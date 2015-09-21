@@ -1,6 +1,6 @@
-Validate-Chain(完善API中... don't use in production)
+Validate-Chain
 ==============
-表单验证链，以及中文验证错误反馈信息
+表单验证链，以及中文验证错误反馈信息(完善API中... don't use in production)
 
 ###Motivation 为啥要写这个工具？
 
@@ -29,7 +29,7 @@ import VC from "validate-chain";
 
 var objectData = {age:22,name:"eisneim",gender:"guy",email:"ss.kjk"}
 validator.loginForm() => {	
-	var vc = new V( objectData )
+	var vc = new VC( objectData )
 	vc.check("opt").optional().max(2,"must not bigger than 2");
 	vc.check("name").required("名字为必填项");
 	vc.check("description").alias("描述").required()
