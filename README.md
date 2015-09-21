@@ -32,7 +32,7 @@ validator.loginForm() => {
 	var vc = new VC( objectData )
 	vc.check("opt").optional().max(2,"must not bigger than 2");
 	vc.check("name").required("名字为必填项");
-	vc.check("description").alias("描述").required()
+	vc.check("desc").alias("描述").required()
 	vc.check("age").required().min(23)
 	vc.check("gender").alias("性别").regx(/male|female/)
 	vc.check("email").email()
@@ -44,3 +44,62 @@ validator.loginForm() => {
 }
 ```
 
+###浏览器中使用
+```html
+<script src="路径/validate-chain-browser.js"></script>
+```
+```javascript
+// VC 为全局变量
+var vc = new VC( objectData )
+vc.check("name").required("名字为必填项");
+//console.log( vc.errors )
+
+```
+###API
+ - check(key) 以它作为开始
+ - errors 检查完后，读取这个属性即可获取所有的错误提示
+ - sanitized 检查完后读取这个属性即可获得消毒后的属性
+ - alias(name)
+ - required([tip])
+ - optional()
+ - between(min,max,[tip])
+ - max(number,[tip])
+ - min(number,[tip])
+ - regx( /regx/,[tip] )
+ - date(dateString,[tip])
+ - before(dateString,[tip])
+ - after(dateString,[tip])
+ - in(Array,[tip])
+ - email([tip],[options])
+ - JSON([tip])
+ - URL([tip],[options])
+ - phone([tip])
+ - numeric([tip])
+ - float([tip])
+ - alpha([tip])
+ - alphanumeric([tip])
+ - ascii([tip])
+ - objectId([tip])
+ - base64([tip])
+ - creditCard([tip])
+ - currency(options,[tip])
+ -
+
+
+### sanitizers 消毒器
+```javascript
+// data = { name:"  小明 "}
+vc.check("name").required("名字为必填项").trim();
+
+console.log( vc.sanitized ) // {name:"小明"}
+```
+
+ - trim() 
+ - escape() 
+ - 
+ - 
+ - 
+ - 
+ - 
+ - 
+ - 
