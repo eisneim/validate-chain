@@ -30,12 +30,13 @@ import VC from "validate-chain";
 var objectData = {age:22,name:"eisneim",gender:"guy",email:"ss.kjk"}
 validator.loginForm() => {	
 	var vc = new VC( objectData )
+	vc.check("email").email()
+	vc.check("desc").alias("描述").required()
 	vc.check("opt").optional().max(2,"must not bigger than 2");
 	vc.check("name").required("名字为必填项");
-	vc.check("desc").alias("描述").required()
 	vc.check("age").required().min(23).numeric().in([22,33,44])//可以一直链下去
 	vc.check("gender").alias("性别").regx(/male|female/).in(["男","女"])
-	vc.check("email").email()
+	
 
 	console.log( vc.errors )
 	//["描述: 为必填字段", "age: 最小值为23", "性别: 不合格/male|female/的格式", "ss.kjk不是常规的email"]
@@ -45,6 +46,9 @@ validator.loginForm() => {
 ```
 
 ###浏览器中使用
+```
+bower install --save validate-chain
+```
 ```html
 <script src="路径/validate-chain-browser.js"></script>
 ```
@@ -55,6 +59,27 @@ vc.check("name").required("名字为必填项");
 //console.log( vc.errors )
 
 ```
+###安装
+```
+npm install --save validate-chain
+
+// es5
+var VC = require("validate-chain")
+
+// es6
+import VC form "validate-chain"
+
+```
+###开发
+```
+// 测试
+gulp test
+
+// build
+gulp build
+
+```
+
 ###API
  - **check(key)** 以它作为开始
  - **errors** 检查完后，读取这个属性即可获取所有的错误提示
@@ -70,7 +95,7 @@ vc.check("name").required("名字为必填项");
  - **before(dateString,[tip])** 时间在dateString之前
  - **after(dateString,[tip])** 时间在dateString之后
  - **in(Array,[tip])** 在一个数组值之一
- - **email([tip],[options])** options: allow_display_name:false 是否匹配 “姓名 <a@b.com>”; allow_utf8_local_part:true 是否限定只能使用英文字母和数字； 
+ - **email([tip],[options])** options: allow_display_name:false 是否匹配 “姓名 <email-地址>”; allow_utf8_local_part:true 是否限定只能使用英文字母和数字； 
  - **JSON([tip])** 是否是格式没有错误的JSON
  - **URL([tip],[options])** 检查是否是正常的URL，options:  protocols: ['http','https','ftp']指定可以用的协议， require_protocol:false 是否可以不用指定协议
  - **phone([tip])** 检查手机号
@@ -94,12 +119,14 @@ vc.check("name").required("名字为必填项").trim();
 console.log( vc.sanitized ) // {name:"小明"}
 ```
 
- - **trim()** 
- - **escape()** 
- - 
- - 
- - 
- - 
- - 
- - 
- - 
+ - **trim()** 去掉首尾空格
+ - **escape()** 将<, >, &, ', " /替换为HTML编码
+ - **whitelist(chars)** 白名单 eg. whitelist("a-zA-Z") 将会变成：replace(/[^a-zA-Z]/g,"")
+ - **blacklist(chars)** 黑名单 eg. whitelist("被和谐|不和谐|查水表") 将会变成：replace(/[被和谐|不和谐|查水表]/g,"")
+ - **toBoolean([strict])** 
+ - **toDate()** 转换为日期对象
+ - **toFloat()** 浮点数
+ - **toInt([radix])** 整数，radix为进制
+ - **toString()** 转换为字符串
+
+

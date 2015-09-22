@@ -24,6 +24,7 @@
 	  int: /^(?:[-+]?(?:0|[1-9][0-9]*))$/,
 	  float: /^(?:[-+]?(?:[0-9]+))?(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/,
 	  hexadecimal: /^[0-9A-F]+$/i,
+	  decimal:/^[-+]?([0-9]+|\.[0-9]+|[0-9]+\.[0-9]+)$/,
 	  hexcolor: /^#?([0-9A-F]{3}|[0-9A-F]{6})$/i, 
 		ascii: /^[\x00-\x7F]+$/,
 		base64: /^(?:[A-Z0-9+\/]{4})*(?:[A-Z0-9+\/]{2}==|[A-Z0-9+\/]{3}=|[A-Z0-9+\/]{4})$/i,
@@ -166,7 +167,7 @@
 			let val = this.target[this.key];
 			if( this.opt && !val ) return this;
 
-			if( vv.isBefore(val, time ) ){
+			if( !vv.isBefore( val, time ) ){
 				this.addError( tip || `${this.key}: ${val}需要在${time}之前` )	
 			}
 
@@ -229,8 +230,11 @@
 		numeric(tip){
 			return this.regx( regx.numeric, tip || `${this.key}: ${this.target[this.key]}必须为纯数字` );
 		}
+		decimal(tip){
+			return this.regx( regx.decimal, tip || `${this.key}: ${this.target[this.key]}必须为小数格式数字` );	
+		}
 		float(tip){
-			return this.regx( regx.numeric, tip || `${this.key}: ${this.target[this.key]}必须为float格式数字` );	
+			return this.regx( regx.float, tip || `${this.key}: ${this.target[this.key]}必须为float格式数字` );	
 		}
 		hex( tip ){
 			return this.regx( regx.hexadecimal, tip || `${this.key}: ${this.target[this.key]}必须为16进制数字` );
@@ -271,13 +275,109 @@
 			return this;
 		}
 		
-		// Currency(tip, options)
 
 		// ----------------- sanitizers ---------------
 		trim(){
+			if( !this.next ) return this;
+			let val = this.target[this.key];
+			if( this.opt && !val ) return this;
 
+			this._san[this.key] = val.trim? val.trim() : val;
+			
+			return this;
 		}
 
+		whitelist( chars ){
+			if( !this.next ) return this;
+			let val = this.target[this.key];
+			if( this.opt && !val ) return this;
+
+			this._san[this.key] = val.replace(new RegExp('[^' + chars + ']+', 'g'), '');
+			
+			return this;
+		}
+		blacklist( chars ){
+			if( !this.next ) return this;
+			let val = this.target[this.key];
+			if( this.opt && !val ) return this;
+
+			this._san[this.key] = val.replace(new RegExp('[' + chars + ']+', 'g'), '');
+			
+			return this;
+		}
+
+		escape(){
+			if( !this.next ) return this;
+			let val = this.target[this.key];
+			if( this.opt && !val ) return this;
+
+			this._san[this.key] = (val.replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\//g, '&#x2F;')
+            .replace(/\`/g, '&#96;'));
+			
+			return this;
+		}
+		toBoolean( strict ){
+			if( !this.next ) return this;
+			let val = this.target[this.key];
+			if( this.opt && !val ) return this;
+			if (strict) {
+			    this._san[this.key] = val === '1' || val === 'true';
+			}
+			this._san[this.key] = val !== '0' && val !== 'false' && val !== '';
+			
+			return this;
+		}
+		toDate(){
+			if( !this.next ) return this;
+			let val = this.target[this.key];
+			if( this.opt && !val ) return this;
+
+			if (Object.prototype.toString.call(val) === '[object Date]') {
+			    this._san[this.key] =  val;
+			}else{
+				let tt = Date.parse(val);
+				this._san[this.key] =  !isNaN(tt) ? new Date(tt) : null;
+			}
+			
+			return this;
+		}
+		toFloat(){
+			if( !this.next ) return this;
+			let val = this.target[this.key];
+			if( this.opt && !val ) return this;
+
+			this._san[this.key] = parseFloat(val);
+			
+			return this;
+		}
+		toInt(radix){
+			if( !this.next ) return this;
+			let val = this.target[this.key];
+			if( this.opt && !val ) return this;
+
+			this._san[this.key] = parseInt(val, radix || 10);
+			
+			return this;
+		}
+		toString(){
+			if( !this.next ) return this;
+			let val = this.target[this.key];
+			if( this.opt && !val ) return this;
+			if (typeof val === 'object' && val !== null && val.toString) {
+			    this._san[this.key] = val.toString();
+			} else if (val === null || typeof val === 'undefined' || (isNaN(val) && !val.length)) {
+			    this._san[this.key] = '';
+			} else if (typeof val !== 'string') {
+			    this._san[this.key] = val + '';
+			}
+			
+			return this;
+		}
 
 
 	}// end of class
