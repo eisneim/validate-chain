@@ -31,13 +31,14 @@
 	}
 
 	class Validator{
-		constructor( target, isUpdate ){
+		constructor( target, takeWhatWeHave ){
 			this.key = null; // temporarily store field name
 			this._errs = [];
 			this._san = {}; // sanitized object
 			this._alias = {}; // key: 中文名
-			this.opt = isUpdate? true: false;
+			this.opt = takeWhatWeHave? true: false;
 			this.target = target;
+			this.takeWhatWeHave = takeWhatWeHave;
 		}
 		get errors(){
 			return this._errs
@@ -84,6 +85,11 @@
 		}
 		// ----------------- must in the beginning of the chain --------
 		required( tip ){
+			// skip require if only take what is provided for sanitize;
+			if( this.takeWhatWeHave ){
+				this.opt = true;
+				return this;
+			}
 			if( !this.next ) return this;
 			this.opt = false;
 			if( !this.target[ this.key ] ) {

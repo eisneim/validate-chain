@@ -54,5 +54,18 @@ describe('sanitizers',function(){
 
 	})
 	
+	it("should only take what is privided, skip require",function(){
+		var vc = new VC( mock, true );
+		vc.check("null").required().max(3)
+		vc.check("name").required().trim();
+		vc.check("email").optional().email();
+		vc.check("xxyz").optional();
+		
+		expect( vc.sanitized["name"] ).to.equal("eisneim")
+		expect(vc.sanitized).to.have.keys("name","email")
+		expect( vc.sanitized.xxyz ).to.be.undefined
+	})
+
 
 });
+	
