@@ -11,9 +11,20 @@ var mock = {
 	siteInvalid: "glexe.com",
 	phone: "13482783201",
 	phoneInvalid: "1348278320",
+	objectId: "55d855455e7ad2da26025512",
 	base64: tmp.toString("base64"),
-	hex: tmp.toString("hex"),
 	ascii: tmp.toString("ascii"),
+	buget: "￥100",
+	hex: tmp.toString("hex"),
+	alpha:"soemstringABC",
+	alphanumeric:"asd23234",
+	float:3.141568,
+	decimal: 0.25,
+
+	future:"2048-10-2 12:22",
+	now: new Date(),
+	dateInvalid:" 2015-20-3 12:22",
+
 }
 
 describe('Validator-Chain checkers',function(){
@@ -64,30 +75,41 @@ describe('Validator-Chain checkers',function(){
 		vc.check("phone").email()
 		expect( vc.errors ).to.have.length(2);
 
+		vc.check("site").URL()
+		vc.check("siteInvalid").URL()
+		vc.check("phone").URL()
+		expect( vc.errors ).to.have.length(3);
 
+		vc.check("objectId").objectId();
+		vc.check("base64").base64();
+		vc.check("ascii").ascii();
+		vc.check("buget").currency()
+		expect( vc.errors ).to.have.length(3);
 	})
 
 	it("can deal with Date",function(){
+		var vc = new VC( mock );
+		var now = new Date()
+		vc.check("future").date();
+		vc.check("dateInvalid").date()
+		expect( vc.errors ).to.have.length(1);
+
+		vc.check("future").after("2015-8-1 11:33").after( now );
+		vc.check("now").before("Tue Sep 22 2045 11:46:12 GMT+0800 (CST)" )
+		expect( vc.errors ).to.have.length( 1 )
 
 	})
 
-	it("can deal with number and Alphabetic",function(){
-		
-	})
+	it("can deal with numbers and Alphabetic",function(){
+		var vc = new VC( mock );
+		vc.check("hex").hex()
+		vc.check("age").between(18,30).max(26).min(21)
+		vc.check("float").float()
+		vc.check("decimal").decimal()
+		vc.check("alpha").alpha()
+		vc.check("alphanumeric").alphanumeric()
 
-	
-/**
-	
-	.match 	.ok
-	.true  .undefined   .exits .empty 
- expect().to.be.a('array');
- expect().to.be.a('number');
- expect().above(0);
- expect().to.be.a('object');
- expect().to.be.a('string');
- expect().to.be.a('array');
- expect().to.equal('eisneim');
- expect().to.throw(Error);
-*/
+		expect( vc.errors ).to.be.empty;
+	})
 
 });
