@@ -265,7 +265,7 @@
 			let val = this.target[this.key];
 			if( this.opt && !val ) return this;
 
-			if( !vv.isCreditCard( val ) ){
+			if( !vv.isCurrency( val, options|| {symbol: '￥'} )){
 				this.addError( tip || `${this.key}: ${val}不符合信用卡的格式` )	
 			}
 			return this;

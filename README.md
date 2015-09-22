@@ -3,9 +3,9 @@ Validate-Chain
 表单验证链，以及中文验证错误反馈信息(完善API中... don't use in production)
 
 ###Motivation 为啥要写这个工具？
+以NODE作为后端开发单页应用时，前后端对表单的验证的逻辑和返回的提示信息其实是一样的，应该做到前后端共用验证逻辑，在React应用中这一点就更重要了。目前后端可以使用的koa-validate,express-validate等验证util又不能在前端使用，而且似乎目前还没有一个是中文提示信息的，于是就决定自己写一个前后端共用的链状验证器。验证器去检查多个字段并在最后返回一个提示信息的数组，已经消毒后的数据；
 
-
-### 之前
+### 之前在angular项目中这样写过
 重复的if return, 以及大量的错误提示信息。。。。。
 ```javascript
 validator.loginForm = ({credential,password,email}) => {
@@ -33,8 +33,8 @@ validator.loginForm() => {
 	vc.check("opt").optional().max(2,"must not bigger than 2");
 	vc.check("name").required("名字为必填项");
 	vc.check("desc").alias("描述").required()
-	vc.check("age").required().min(23)
-	vc.check("gender").alias("性别").regx(/male|female/)
+	vc.check("age").required().min(23).numeric().in([22,33,44])//可以一直链下去
+	vc.check("gender").alias("性别").regx(/male|female/).in(["男","女"])
 	vc.check("email").email()
 
 	console.log( vc.errors )
@@ -56,33 +56,33 @@ vc.check("name").required("名字为必填项");
 
 ```
 ###API
- - check(key) 以它作为开始
- - errors 检查完后，读取这个属性即可获取所有的错误提示
- - sanitized 检查完后读取这个属性即可获得消毒后的属性
- - alias(name)
- - required([tip])
- - optional()
- - between(min,max,[tip])
- - max(number,[tip])
- - min(number,[tip])
- - regx( /regx/,[tip] )
- - date(dateString,[tip])
- - before(dateString,[tip])
- - after(dateString,[tip])
- - in(Array,[tip])
- - email([tip],[options])
- - JSON([tip])
- - URL([tip],[options])
- - phone([tip])
- - numeric([tip])
- - float([tip])
- - alpha([tip])
- - alphanumeric([tip])
- - ascii([tip])
- - objectId([tip])
- - base64([tip])
- - creditCard([tip])
- - currency(options,[tip])
+ - **check(key)** 以它作为开始
+ - **errors** 检查完后，读取这个属性即可获取所有的错误提示
+ - **sanitized** 检查完后读取这个属性即可获得消毒后的属性
+ - **alias(name)** 如果设置了别名，错误信息将以这个别名开始
+ - **required([tip])** 必填，大部分情况下需要在链中指明，
+ - **optional()** 可选，大部分情况下需要在链中指明，
+ - **between(min,max,[tip])** 如果value是字符串则比较长度，数字则比较大小
+ - **max(number,[tip])** 如果value是字符串则比较长度，数字则比较大小
+ - **min(number,[tip])** 如果value是字符串则比较长度，数字则比较大小
+ - **regx( /regx/,[tip] )** 传入正则表达式对象，或者字符串的正则：\w.?end$不加首尾的/
+ - **date(dateString,[tip])** 是否为时间格式
+ - **before(dateString,[tip])** 时间在dateString之前
+ - **after(dateString,[tip])** 时间在dateString之后
+ - **in(Array,[tip])** 在一个数组值之一
+ - **email([tip],[options])** options: allow_display_name:false 是否匹配 “姓名 <a@b.com>”; allow_utf8_local_part:true 是否限定只能使用英文字母和数字； 
+ - **JSON([tip])** 是否是格式没有错误的JSON
+ - **URL([tip],[options])** 检查是否是正常的URL，options:  protocols: ['http','https','ftp']指定可以用的协议， require_protocol:false 是否可以不用指定协议
+ - **phone([tip])** 检查手机号
+ - **numeric([tip])** 检查是否为数字
+ - **float([tip])** 是否为浮点数
+ - **alpha([tip])** 是否为纯字母
+ - **alphanumeric([tip])** 是否为字母+数字
+ - **ascii([tip])** 是否是ascii 码
+ - **objectId([tip])** 是否为Mongodb ObjectID
+ - **base64([tip])** 是否为base64格式字符串编码
+ - **creditCard([tip])** 是否为信用卡
+ - **currency(options,[tip])** 是否为货币，默认值：{symbol: '￥', require_symbol: false, allow_space_after_symbol: false, symbol_after_digits: false, allow_negatives: true, parens_for_negatives: false, negative_sign_before_digits: false, negative_sign_after_digits: false, allow_negative_sign_placeholder: false, thousands_separator: ',', decimal_separator: '.', allow_space_after_digits: false }.
  -
 
 
@@ -94,8 +94,8 @@ vc.check("name").required("名字为必填项").trim();
 console.log( vc.sanitized ) // {name:"小明"}
 ```
 
- - trim() 
- - escape() 
+ - **trim()** 
+ - **escape()** 
  - 
  - 
  - 

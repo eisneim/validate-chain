@@ -1,16 +1,19 @@
 var expect = require('chai').expect;
 var VC = require("../validate-chain.js");
+var tmp = new Buffer("some value");
 
 var mock = {
 	name: "eisneim",
 	age: 24,
 	email: "eisneim1@gmail.com",
-	emailInValid: "sdfjk@gmail",
+	email2: "eisneim <sdfjk@gmail.com>",
 	site: "http://glexe.com",
 	siteInvalid: "glexe.com",
 	phone: "13482783201",
 	phoneInvalid: "1348278320",
-
+	base64: tmp.toString("base64"),
+	hex: tmp.toString("hex"),
+	ascii: tmp.toString("ascii"),
 }
 
 describe('Validator-Chain checkers',function(){
@@ -51,7 +54,17 @@ describe('Validator-Chain checkers',function(){
 	})
 
 	it("can deal with common string format",function(){
-		
+		var vc = new VC( mock );
+		vc.check("phone").phone()
+		vc.check("phoneInvalid").phone()
+		expect( vc.errors ).to.have.length(1);
+
+		vc.check("email").email()
+		vc.check("email2").email(null,{ allow_display_name: true })
+		vc.check("phone").email()
+		expect( vc.errors ).to.have.length(2);
+
+
 	})
 
 	it("can deal with Date",function(){
