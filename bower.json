@@ -1,0 +1,16 @@
+{
+  "name": "validate-chain",
+  "main": "validate-chain.js",
+  "version": "1.0.0",
+  "homepage": "https://github.com/eisneim/validate-chain",
+  "authors": [
+    "eisneim <eisneim1@gmail.com>"
+  ],
+  "description": "前后端共用的表单验证链，以及中文的验证错误反馈信息",
+  "keywords": [
+    "表单",
+    "验证",
+    "validation"
+  ],
+  "license": "MIT"
+}

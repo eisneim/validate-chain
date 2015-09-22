@@ -2,9 +2,9 @@
   "name": "validate-chain",
   "version": "1.0.0",
   "description": "表单验证链，以及中文验证错误反馈信息",
-  "main": "index.js",
+  "main": "validate-chain.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "gulp test"
   },
   "repository": {
     "type": "git",
