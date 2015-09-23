@@ -33,12 +33,13 @@ describe('Validator-Chain checkers',function(){
 	it("should check require() and optional()",function(){
 		var vc = new VC( mock );
 		vc.check("name").required();
-		vc.check("null").optional().max(3);
+		vc.check("null").optional().max(18);
+		vc.check("age").optional().max(18);
 
-		expect( vc.errors ).to.be.empty;
+		expect( vc.errors ).to.have.length(1)
 
 		vc.check("null").required();
-		expect( vc.errors ).to.have.length(1);
+		expect( vc.errors ).to.have.length(2);
 	});
 
 	it("should change Error message if .aliase() presents",function(){

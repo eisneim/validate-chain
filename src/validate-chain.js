@@ -41,10 +41,10 @@
 			this.takeWhatWeHave = takeWhatWeHave;
 		}
 		get errors(){
-			return this._errs
+			return this._errs[0]?this._errs : null;
 		}
 		get sanitized(){
-			return this._san;
+			return Object.keys(this._san).length>0?this._san : null;
 		}
 		addError( msg ){
 			if(this._san[this.key]) delete this._san[this.key]

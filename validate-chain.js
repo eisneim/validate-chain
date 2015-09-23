@@ -461,12 +461,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		}, {
 			key: 'errors',
 			get: function get() {
-				return this._errs;
+				return this._errs[0] ? this._errs : null;
 			}
 		}, {
 			key: 'sanitized',
 			get: function get() {
-				return this._san;
+				return Object.keys(this._san).length > 0 ? this._san : null;
 			}
 		}]);
 

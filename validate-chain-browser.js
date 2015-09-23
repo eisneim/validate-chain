@@ -896,15 +896,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 	};
 
 	var Validator = (function () {
-		function Validator(target, isUpdate) {
+		function Validator(target, takeWhatWeHave) {
 			_classCallCheck(this, Validator);
 
 			this.key = null; // temporarily store field name
 			this._errs = [];
 			this._san = {}; // sanitized object
 			this._alias = {}; // key: 中文名
-			this.opt = isUpdate ? true : false;
+			this.opt = takeWhatWeHave ? true : false;
 			this.target = target;
+			this.takeWhatWeHave = takeWhatWeHave;
 		}
 
 		// end of class
@@ -959,6 +960,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		}, {
 			key: 'required',
 			value: function required(tip) {
+				// skip require if only take what is provided for sanitize;
+				if (this.takeWhatWeHave) {
+					this.opt = true;
+					return this;
+				}
 				if (!this.next) return this;
 				this.opt = false;
 				if (!this.target[this.key]) {
@@ -1314,12 +1320,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		}, {
 			key: 'errors',
 			get: function get() {
-				return this._errs;
+				return this._errs[0] ? this._errs : null;
 			}
 		}, {
 			key: 'sanitized',
 			get: function get() {
-				return this._san;
+				return Object.keys(this._san).length > 0 ? this._san : null;
 			}
 		}]);
 
