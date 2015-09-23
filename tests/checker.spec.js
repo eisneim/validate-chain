@@ -23,7 +23,7 @@ var mock = {
 
 	future:"2048-10-2 12:22",
 	now: new Date(),
-	dateInvalid:" 2015-20-3 12:22",
+	dateInvalid:"2015-20-3 12:22",
 
 }
 
@@ -63,6 +63,33 @@ describe('Validator-Chain checkers',function(){
 		vc.check("name").regx(/^eis./i).regx("eim$",null,"i")
 
 		expect(vc.errors).to.be.empty;
+	})
+
+	it("can check array",function(){
+		var vc = new VC( {
+			levels:[ 1,3,4,5],
+			posts:[
+				{title:"some title ",date:"2014-20-3 12:22" },
+				{title:"不和谐的标题",date:"2014-12-3 12:22" },
+			],
+			email:"badeEmail.com"
+		} );
+		vc.check("levels").alias("等级").array(function(item,index){
+			item.max(3)
+		})
+
+		expect(vc.errors).to.have.length(2);
+
+		vc.check("posts").array( function( item,index ){
+			item.check("date").date();
+			item.check("name").required();
+			// item.check("title").regx(/title/)
+		})
+		expect(vc.errors).to.have.length(5);
+
+		vc.check("email").email();
+
+		expect(vc.errors).to.have.length(6);
 	})
 
 	it("can deal with common string format",function(){

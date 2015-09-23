@@ -9,7 +9,12 @@ var babelify = require("babelify");
 var gbrowserify = require("gulp-browserify")
 
 gulp.task('default',['es6']);
-gulp.task("build",["test","es6","build-browser"]);
+gulp.task("build",["test","es6","build-browser","browser"]);
+
+gulp.task("watch",function(){
+	gulp.watch( 'src/**/*.js' ,['es6']);
+
+})
 
 gulp.task("es6",function(){
 	gulp.src("src/**/*.js")
@@ -84,14 +89,6 @@ gulp.task("browser",function(){
 // ---------------------- test ----------------
 
 var mocha = require('gulp-mocha');
-gulp.task('test_handle_err',function(){
-    gulp.src('./tests/**/*.spec.js', {read: false})
-      .pipe(mocha({
-      	reporter: 'spec',
-      	// compilers: 'js:babel/register'
-    }))
-    .on( "error", handleError); // spec,dot, nyan,list,doc,min,Progress, 
-})
 
 gulp.task('test',function(){
     gulp.src('./tests/**/*.spec.js', {read: false})
@@ -100,7 +97,18 @@ gulp.task('test',function(){
     }))
 })
 
+gulp.task('test_handle_err',["es6"],function(){
+    gulp.src('./tests/**/*.spec.js', {read: false})
+      .pipe(mocha({
+      	reporter: 'spec',
+      	// compilers: 'js:babel/register'
+    }))
+    .on( "error", handleError); // spec,dot, nyan,list,doc,min,Progress, 
+})
+
+
 gulp.task('watch-test',function(){
+	gulp.watch( 'src/**/*.js' ,['test_handle_err']);
   gulp.watch('./tests/**/*.spec.js', ['test_handle_err']);
 })
 

@@ -1,6 +1,6 @@
 {
   "name": "validate-chain",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "表单验证链，以及中文验证错误反馈信息",
   "main": "validate-chain.js",
   "scripts": {

@@ -38,7 +38,14 @@
 			this._alias = {}; // key: 中文名
 			this.opt = takeWhatWeHave? true: false;
 			this.target = target;
+			// modes:
 			this.takeWhatWeHave = takeWhatWeHave;
+			this.inArrayMode = false;
+			this.inArray = {
+				index:0,
+				arrayKey: null,
+			}
+
 		}
 		get errors(){
 			return this._errs[0]?this._errs : null;
@@ -49,13 +56,44 @@
 		addError( msg ){
 			if(this._san[this.key]) delete this._san[this.key]
 
-			var alias = this._alias[this.key];	
+			if( this.inArrayMode ){
+				let {index,arrayKey} = this.inArray;
+				var arrayAlias = this._alias[arrayKey];
+				var item = this.target[arrayKey][index]
+
+				var alias = this._alias[ arrayKey+"."+index+"."+this.key ]
+				// pureArray: [1,2,"ss"]
+				var isPureArray = item && !item[this.key];
+				if(isPureArray){
+					alias = (arrayAlias||arrayKey)+
+					"."+index;
+				}else{
+					alias = (arrayAlias||arrayKey)+"."+index+"."+
+					(alias||this.key)
+				}
+				
+
+			}else{
+				var alias = this._alias[this.key];
+			}
+
 			if( alias ){
 				msg = alias+": "+ msg.replace(/\S+\:\s/,"")
 			}
 
 			this._errs.push( msg )
 			// this.next = false;
+		}
+		// prevent accidently change original value;
+		get currentVal(){
+			
+			if( this.inArrayMode ){
+				let array = this.target[this.inArray.arrayKey];
+				let item = array[this.inArray.index];
+				return (item && item[this.key])? item[this.key] : item;
+			}
+
+			return this.target[this.key];;
 		}
 		/**
 		 * set alias for a key and store them in a map: this._alias = {}
@@ -67,7 +105,13 @@
 				this.next = false; 
 				return this;
 			}
-			this._alias[ this.key ] = name;
+			if( this.inArrayMode ){
+				let {index,arrayKey} = this.inArray;
+				this._alias[ arrayKey+"."+index+"."+this.key ] = name;
+			}else{
+				this._alias[ this.key ] = name;	
+			}
+			
 			return this;
 		}
 		// ----------------- start a validation chain with this method -----
@@ -106,11 +150,11 @@
 		// ----------------- property validate methods ------------------
 		between(min,max,tip){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 			
 			let type = typeof val;
-			if( type === "string" && (val.length > max || val.lenth< min)  ){
+			if( (type === "string"||Array.isArray(val)) && (val.length > max || val.lenth< min)  ){
 				this.addError(tip || `${this.key}: 长度应该在${min}-${max}个字符之间`);
 			}else if( type === "number" && (val > max || val< min) ){
 				 this.addError(tip || `${this.key}: 大小应该在${min}-${max}之间`)
@@ -119,11 +163,10 @@
 		}
 		max(num,tip){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
-			
 			let type = typeof val;
-			if( type === "string" && val.length > num ){
+			if( (type === "string"||Array.isArray(val)) && val.length > num ){
 				this.addError(tip || `${this.key}: 最多${num}个字符`); 
 			}else if( type === "number" && val > num ){
 				this.addError(tip || `${this.key}: 最大值为${num}`)
@@ -132,11 +175,11 @@
 		}
 		min(num,tip){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			let type = typeof val;
-			if( type === "string" && val.length < num ){
+			if( (type === "string"||Array.isArray(val)) && val.length < num ){
 				 this.addError(tip || `${this.key}: 最少${num}个字符`)
 			}else if( type === "number" && val < num ){
 				 this.addError(tip || `${this.key}: 最小值为${num}`)
@@ -146,7 +189,7 @@
 		}
 		regx( pattern, tip,modifiers){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 			if (Object.prototype.toString.call(pattern) !== '[object RegExp]') {
 	        pattern = new RegExp(pattern, modifiers);
@@ -157,11 +200,32 @@
 
 			return this;
 		}
-		date( tip ){
+		array( checker ,tip){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
+			if( !Array.isArray( val ) ){
+				this.addError( tip || `${this.key}: 需要为一个数组` )	
+			}else if( typeof checker === "function" ){
+				this.inArrayMode = true;
+				this.inArray.arrayKey = this.key;
+
+				var self = this;
+				val.forEach(function(item,index){
+					self.inArray.index = index;
+					checker( self,index )
+				});
+
+				this.inArrayMode = false;
+			}
+
+			return this;
+		}
+		date( tip ){
+			if( !this.next ) return this;
+			let val = this.currentVal;
+			if( this.opt && !val ) return this;
 			if( !vv.isDate( val ) ){
 				this.addError( tip || `${this.key}: ${val}不符合日期格式` )	
 			}
@@ -170,9 +234,8 @@
 		}
 		before( time, tip ){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
-
 			if( !vv.isBefore( val, time ) ){
 				this.addError( tip || `${this.key}: ${val}需要在${time}之前` )	
 			}
@@ -181,7 +244,7 @@
 		}
 		after( time, tip ){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			if( !vv.isAfter(val ,time  ) ){
@@ -191,7 +254,7 @@
 		}
 		in( values,tip ){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			if( !vv.isIn( val, values ) ){
@@ -201,7 +264,7 @@
 		}
 		email( tip, options ){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			if( !vv.isEmail( val, options ) ){
@@ -212,7 +275,7 @@
 		}
 		JSON( tip ){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			if( !vv.isJSON( val ) ){
@@ -222,7 +285,7 @@
 		}
 		URL( tip,options ){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			if( !vv.isURL( val,options) ){
@@ -262,7 +325,7 @@
 		}
 		creditCard(tip){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			if( !vv.isCreditCard( val ) ){
@@ -272,7 +335,7 @@
 		}
 		currency( options,tip ){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			if( !vv.isCurrency( val, options|| {symbol: '￥'} )){
@@ -285,7 +348,7 @@
 		// ----------------- sanitizers ---------------
 		trim(){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			this._san[this.key] = val.trim? val.trim() : val;
@@ -295,7 +358,7 @@
 
 		whitelist( chars ){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			this._san[this.key] = val.replace(new RegExp('[^' + chars + ']+', 'g'), '');
@@ -304,7 +367,7 @@
 		}
 		blacklist( chars ){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			this._san[this.key] = val.replace(new RegExp('[' + chars + ']+', 'g'), '');
@@ -314,7 +377,7 @@
 
 		escape(){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			this._san[this.key] = (val.replace(/&/g, '&amp;')
@@ -329,7 +392,7 @@
 		}
 		toBoolean( strict ){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 			if (strict) {
 			    this._san[this.key] = val === '1' || val === 'true';
@@ -340,7 +403,7 @@
 		}
 		toDate(){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			if (Object.prototype.toString.call(val) === '[object Date]') {
@@ -354,7 +417,7 @@
 		}
 		toFloat(){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			this._san[this.key] = parseFloat(val);
@@ -363,7 +426,7 @@
 		}
 		toInt(radix){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
 			this._san[this.key] = parseInt(val, radix || 10);
@@ -372,7 +435,7 @@
 		}
 		toString(){
 			if( !this.next ) return this;
-			let val = this.target[this.key];
+			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 			if (typeof val === 'object' && val !== null && val.toString) {
 			    this._san[this.key] = val.toString();

@@ -23,6 +23,7 @@ function err( msg ){
 	return { verr:msg }
 }
 ```
+
 ###使用 Validate-Chain
 ```javascript
 import VC from "validate-chain";
@@ -59,8 +60,9 @@ vc.check("name").required("名字为必填项");
 //console.log( vc.errors )
 
 ```
+
 ###安装
-```
+```javascript
 npm install --save validate-chain
 
 // es5
@@ -70,14 +72,38 @@ var VC = require("validate-chain")
 import VC form "validate-chain"
 
 ```
-###开发
-```
-// 测试
-gulp test
 
-// build
-gulp build
+###检查数组字段
+如果一个字段的值为数组，可以使用array(callback)来进行检查
+```javascript
+var data = {
+	levels:[ 1,3,4,5],
+	posts:[
+		{title:"some title ",date:"2014-20-3 12:22" },//错误日期
+		{title:"不和谐的标题",date:"2014-12-3 12:22" }],
+}
+var vc = new VC( data );
 
+vc.check("levels").alias("等级").array(function(item,index){
+	// 对于数组里的没一个值都检查一遍，如果fail，错误信息将被记录
+	item.max(3)
+})
+
+vc.check("posts").array( function( item,index ){
+	// 如果数组了的元素是一个对象，则使用.check来进行检查(目前不支持数组内部元素的消毒);
+	item.check("date").date();
+	item.check("name").required();
+})
+
+expect(vc.errors).to.have.length(5); // -> pass
+/**
+[ '等级.2: 最大值为3',
+  '等级.3: 最大值为3',
+  'posts.0.date: 2014-20-3 12:22不符合日期格式',
+  'posts.0: 为必填字段',
+  'posts.1: 为必填字段',
+  'email: badeEmail.com不是常规的email' 
+] **/
 ```
 
 ###API
@@ -91,6 +117,7 @@ gulp build
  - **max(number,[tip])** 如果value是字符串则比较长度，数字则比较大小
  - **min(number,[tip])** 如果value是字符串则比较长度，数字则比较大小
  - **regx( /regx/,[tip] )** 传入正则表达式对象，或者字符串的正则：\w.?end$不加首尾的/
+ - **array([callback],[tip])** 检查数组
  - **date(dateString,[tip])** 是否为时间格式
  - **before(dateString,[tip])** 时间在dateString之前
  - **after(dateString,[tip])** 时间在dateString之后
@@ -129,4 +156,12 @@ console.log( vc.sanitized ) // {name:"小明"}
  - **toInt([radix])** 整数，radix为进制
  - **toString()** 转换为字符串
 
+###开发
+```
+// 测试
+gulp test
 
+// build
+gulp build
+
+```
