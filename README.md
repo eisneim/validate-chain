@@ -167,8 +167,9 @@ vc.check("objOfArray").required().array(function(item,index){
 
 console.log( vc.sanitized ) // {name:"小明",....}
 ```
-
+	
  - **trim()** 去掉首尾空格
+ - **sanitize(function)** 自定义消毒类型 function(value){ return value+1 } 
  - **escape()** 将<, >, &, ', " /替换为HTML编码
  - **whitelist(chars)** 白名单 eg. whitelist("a-zA-Z") 将会变成：replace(/[^a-zA-Z]/g,"")
  - **blacklist(chars)** 黑名单 eg. whitelist("被和谐|不和谐|查水表") 将会变成：replace(/[被和谐|不和谐|查水表]/g,"")
