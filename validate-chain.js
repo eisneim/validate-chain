@@ -57,6 +57,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 		// end of class
 
+		/**
+   * [objectGetMethod description]
+   * @param  {[type]} obj   [description]
+   * @param  {[type]} key   [description]
+   * @param  {[type]} keys  [description]
+   * @param  {[type]} index [description]
+   * @return {[type]}       [description]
+   */
+
 		_createClass(Validator, [{
 			key: 'addError',
 			value: function addError(msg) {
@@ -144,7 +153,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				}
 				if (!this.next) return this;
 				this.opt = false;
-				if (!this.target[this.key]) {
+				if (this.inArrayMode ? !this.target[this.key] : !this.currentVal) {
 					this.addError(tip || this.key + ': 为必填字段');
 					this.next = false;
 				}
@@ -563,12 +572,51 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 					return item && item[this.key] ? item[this.key] : item;
 				}
 
-				return this.target[this.key];;
+				return objectGetMethod(this.target, this.key);
 			}
 		}]);
 
 		return Validator;
 	})();
+
+	function objectGetMethod(_x, _x2, _x3, _x4) {
+		var _again = true;
+
+		_function: while (_again) {
+			var obj = _x,
+			    key = _x2,
+			    keys = _x3,
+			    index = _x4;
+			_again = false;
+
+			if (!obj || !key) return null;
+			// console.log("key:",key)
+			// console.log("obj:",obj)
+
+			if (key.indexOf(".") > -1) {
+				keys = key.split(".");
+				_x = obj[keys[0]];
+				_x2 = keys[0];
+				_x3 = keys;
+				_x4 = 1;
+				_again = true;
+				continue _function;
+			}
+			// recursive
+			if (keys && keys[index + 1]) {
+				_x = obj[keys[index]];
+				_x2 = keys[index];
+				_x3 = keys;
+				_x4 = index + 1;
+				_again = true;
+				continue _function;
+			} else if (keys && keys[index]) {
+				return obj[keys[index]];
+			}
+
+			return obj[key];
+		}
+	}
 
 	if (process.browser) {
 		window.VC = Validator;

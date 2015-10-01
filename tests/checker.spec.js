@@ -25,6 +25,14 @@ var mock = {
 	now: new Date(),
 	dateInvalid:"2015-20-3 12:22",
 
+	nested:{
+		level1:{
+			level2:{
+				value:12
+			},
+			value:24
+		}
+	}
 }
 
 describe('Validator-Chain checkers',function(){
@@ -151,6 +159,22 @@ describe('Validator-Chain checkers',function(){
 		vc.check("alphanumeric").alphanumeric()
 
 		expect( vc.errors ).to.be.empty;
+	})
+
+	it("should check nest object property",function(){
+		var vc = new VC( mock );
+		vc.check("nested.level1.value").$apply(function(value){
+			expect(value).to.equals(24)
+			return true
+		}).required().max(18);
+
+		vc.check("nested.level1.level2.value").$apply(function(value){
+			expect(value).to.equals(12)
+			return true
+		}).required().max(18)
+
+		expect( vc.errors ).to.have.length(1);
+
 	})
 
 });

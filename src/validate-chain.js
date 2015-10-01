@@ -93,7 +93,7 @@
 				return (item && item[this.key])? item[this.key] : item;
 			}
 
-			return this.target[this.key];;
+			return objectGetMethod(this.target,this.key)
 		}
 		/**
 		 * set alias for a key and store them in a map: this._alias = {}
@@ -136,7 +136,7 @@
 			}
 			if( !this.next ) return this;
 			this.opt = false;
-			if( !this.target[ this.key ] ) {
+			if( this.inArrayMode? !this.target[this.key] : !this.currentVal ) {
 				this.addError( tip || `${this.key}: 为必填字段` )
 				this.next = false;
 			}
@@ -474,6 +474,37 @@
 
 
 	}// end of class
+	
+
+	/**
+	 * [objectGetMethod description]
+	 * @param  {[type]} obj   [description]
+	 * @param  {[type]} key   [description]
+	 * @param  {[type]} keys  [description]
+	 * @param  {[type]} index [description]
+	 * @return {[type]}       [description]
+	 */
+	function objectGetMethod(obj,key ,keys,index){
+		if(!obj || !key ) return null;
+		// console.log("key:",key)
+		// console.log("obj:",obj)
+
+		if(key.indexOf(".")> -1){
+			keys = key.split(".");	
+			return objectGetMethod( obj[ keys[0] ], keys[0], keys, 1 );
+		}
+		// recursive
+		if( keys &&  keys[index+1] ){
+			return objectGetMethod( obj[ keys[index] ], keys[index], keys, index+1 );
+		}else if( keys &&  keys[index ] ){
+			return obj [keys[index] ]
+		}
+
+		return obj[ key ];
+	}
+
+
+
 	if(process.browser){
 		window.VC = Validator;
 		window.Validator = vv;

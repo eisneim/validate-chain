@@ -28,7 +28,7 @@ function err( msg ){
 ```javascript
 import VC from "validate-chain";
 
-var objectData = {age:22,name:"eisneim",gender:"guy",email:"ss.kjk"}
+var objectData = {age:22,name:"eisneim",gender:"guy",email:"ss.kjk",nested:{a:{b:{v:33}}}}
 validator.loginForm() => {	
 	var vc = new VC( objectData )
 	vc.check("email").email()
@@ -36,11 +36,13 @@ validator.loginForm() => {
 		.check("opt").optional().max(2,"must not bigger than 2");
 	//或者
 	vc.check("name").required("名字为必填项").$apply(function(value){
+		// 自定义的判断逻辑
 		return value && value.length>2
 	},"名字的长度至少两个字符");
 	vc.check("age").required().min(23).numeric().in([22,33,44])//可以一直链下去
 	vc.check("gender").alias("性别").regx(/male|female/).in(["男","女"])
-	
+	// 多层结构
+	vc.check("nested.a.b.v").max(30)
 
 	console.log( vc.errors )
 	//["描述: 为必填字段", "age: 最小值为23", "性别: 不合格/male|female/的格式", "ss.kjk不是常规的email"]
@@ -109,7 +111,7 @@ expect(vc.errors).to.have.length(5); // -> pass
 ```
 
 ###API
- - **check(key)** 以它作为开始
+ - **check(key)** 以它作为开始，如果对象数据有多层，可使用"a.b.c"来检查内部元素
  - **errors** 检查完后，读取这个属性即可获取所有的错误提示
  - **sanitized** 检查完后读取这个属性即可获得消毒后的属性
  - **alias(name)** 如果设置了别名，错误信息将以这个别名开始
