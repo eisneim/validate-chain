@@ -119,14 +119,22 @@
 			this.key = key;
 			this.next = true;
 			this.opt = false;
+
 			if( this.target[ key ] !== undefined ){
 				this._san[key] = this.target[ key ];
-			} else{
+
+			}else if( key.indexOf(".")>-1 ){ // nested object ?
+				var parentKey = key.split(".")[0]
+				if(!this._san[ parentKey ]) 
+					this._san[ parentKey ] = this.target[ parentKey ];
+
+			}else{
 				this.opt = true;
 			}
 
 			return this
 		}
+
 		// ----------------- must in the beginning of the chain --------
 		required( tip ){
 			// skip require if only take what is provided for sanitize;

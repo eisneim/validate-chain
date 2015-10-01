@@ -122,7 +122,7 @@ expect(vc.errors).to.have.length(5); // -> pass
  - **min(number,[tip])** 如果value是字符串则比较长度，数字则比较大小
  - **regx( /regx/,[tip] )** 传入正则表达式对象，或者字符串的正则：\w.?end$不加首尾的/
  - **array([callback],[tip])** 检查数组
- - **$apply([callback],[tip])** 自定义逻辑function(value){return true}
+ - **$apply(callback,[tip])** 自定义逻辑function(value){return true}
  - **date(dateString,[tip])** 是否为时间格式
  - **before(dateString,[tip])** 时间在dateString之前
  - **after(dateString,[tip])** 时间在dateString之后
@@ -144,6 +144,7 @@ expect(vc.errors).to.have.length(5); // -> pass
 
 
 ### sanitizers 消毒器
+想要被保存到vc.sanitized对象中的字段，必须使用vc.check("name"),如果该字段为可选的，则应该使用vc.check("name").optional();
 ```javascript
 // data = { name:"  小明 "}
 vc.check("name").required("名字为必填项").trim();

@@ -133,8 +133,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				this.key = key;
 				this.next = true;
 				this.opt = false;
+
 				if (this.target[key] !== undefined) {
 					this._san[key] = this.target[key];
+				} else if (key.indexOf(".") > -1) {
+					// nested object ?
+					var parentKey = key.split(".")[0];
+					if (!this._san[parentKey]) this._san[parentKey] = this.target[parentKey];
 				} else {
 					this.opt = true;
 				}
