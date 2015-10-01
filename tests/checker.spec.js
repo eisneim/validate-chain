@@ -32,9 +32,9 @@ describe('Validator-Chain checkers',function(){
 
 	it("should check require() and optional()",function(){
 		var vc = new VC( mock );
-		vc.check("name").required();
-		vc.check("null").optional().max(18);
-		vc.check("age").optional().max(18);
+		vc.check("name").required()
+			.check("null").optional().max(18)
+			.check("age").optional().max(18)
 
 		expect( vc.errors ).to.have.length(1)
 
@@ -90,6 +90,19 @@ describe('Validator-Chain checkers',function(){
 		vc.check("email").email();
 
 		expect(vc.errors).to.have.length(6);
+	})
+
+
+	it("should be able to use $apply to use custom logic",function(){
+		var vc = new VC( mock );
+		vc
+		.check("age").alias("年龄").$apply(function( val ){
+			return val < 18
+		},"需要为未成年人")
+		.check("name").$apply(function(val){
+			return val === "eisneim";
+		},"name should equals to eisneim, just for test")
+		expect( vc.errors ).to.have.length(1)
 	})
 
 	it("can deal with common string format",function(){

@@ -219,6 +219,34 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 				return this;
 			}
+
+			/**
+    * pass in custom function for vlidation logic;
+    * @param  {function} checker [description]
+    * @param  {[string]} tip     [description]
+    * @return {[object]}         [description]
+    */
+		}, {
+			key: '$apply',
+			value: function $apply(checker, tip) {
+				if (!this.next) return this;
+				var val = this.currentVal;
+				if (this.opt && !val) return this;
+
+				if (typeof checker !== "function") throw Error("$apply第一个参数必须为function");
+				if (!checker(val)) {
+					this.addError(tip || this.key + ': ' + val + '不是正确的格式');
+				}
+
+				return this;
+			}
+
+			/**
+    * check each item inside an array
+    * @param  {function} checker callback function
+    * @param  {[string]} tip     [description]
+    * @return {[object]}         
+    */
 		}, {
 			key: 'array',
 			value: function array(checker, tip) {

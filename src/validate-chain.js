@@ -200,6 +200,30 @@
 
 			return this;
 		}
+		/**
+		 * pass in custom function for vlidation logic;
+		 * @param  {function} checker [description]
+		 * @param  {[string]} tip     [description]
+		 * @return {[object]}         [description]
+		 */
+		$apply(checker,tip){
+			if( !this.next ) return this;
+			let val = this.currentVal;
+			if( this.opt && !val ) return this;
+
+			if( typeof checker !== "function" ) throw Error("$apply第一个参数必须为function")
+			if( !checker( val ) ){
+				this.addError( tip || `${this.key}: ${val}不是正确的格式` );
+			}
+
+			return this;
+		}
+		/**
+		 * check each item inside an array
+		 * @param  {function} checker callback function
+		 * @param  {[string]} tip     [description]
+		 * @return {[object]}         
+		 */
 		array( checker ,tip){
 			if( !this.next ) return this;
 			let val = this.currentVal;

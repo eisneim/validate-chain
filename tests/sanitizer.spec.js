@@ -25,7 +25,6 @@ describe('sanitizers',function(){
 		vc.check("description").blacklist("不和谐");
 		vc.check("site").URL().whitelist("glexe1234567890");
 		vc.check("badInput").escape()
-
 		expect( vc.errors ).to.be.empty;
 		expect( vc.sanitized["name"] ).to.equal("eisneim")
 		expect( vc.sanitized["description"] ).to.equal("_")

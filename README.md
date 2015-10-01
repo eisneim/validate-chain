@@ -32,9 +32,12 @@ var objectData = {age:22,name:"eisneim",gender:"guy",email:"ss.kjk"}
 validator.loginForm() => {	
 	var vc = new VC( objectData )
 	vc.check("email").email()
-	vc.check("desc").alias("描述").required()
-	vc.check("opt").optional().max(2,"must not bigger than 2");
-	vc.check("name").required("名字为必填项");
+		.check("desc").alias("描述").required()
+		.check("opt").optional().max(2,"must not bigger than 2");
+	//或者
+	vc.check("name").required("名字为必填项").$apply(function(value){
+		return value && value.length>2
+	},"名字的长度至少两个字符");
 	vc.check("age").required().min(23).numeric().in([22,33,44])//可以一直链下去
 	vc.check("gender").alias("性别").regx(/male|female/).in(["男","女"])
 	
@@ -101,8 +104,7 @@ expect(vc.errors).to.have.length(5); // -> pass
   '等级.3: 最大值为3',
   'posts.0.date: 2014-20-3 12:22不符合日期格式',
   'posts.0: 为必填字段',
-  'posts.1: 为必填字段',
-  'email: badeEmail.com不是常规的email' 
+  'posts.1: 为必填字段'
 ] **/
 ```
 
@@ -118,6 +120,7 @@ expect(vc.errors).to.have.length(5); // -> pass
  - **min(number,[tip])** 如果value是字符串则比较长度，数字则比较大小
  - **regx( /regx/,[tip] )** 传入正则表达式对象，或者字符串的正则：\w.?end$不加首尾的/
  - **array([callback],[tip])** 检查数组
+ - **$apply([callback],[tip])** 自定义逻辑function(value){return true}
  - **date(dateString,[tip])** 是否为时间格式
  - **before(dateString,[tip])** 时间在dateString之前
  - **after(dateString,[tip])** 时间在dateString之后
