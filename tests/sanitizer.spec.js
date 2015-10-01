@@ -3,7 +3,7 @@ var VC = require("../validate-chain.js");
 
 var mock = {
 	name: " eisneim  ",
-	age: 24.5,
+	age: 24.2,
 	email: "eisneim1@gmail.com",
 	description:"_不和谐",
 	badInput:"<script src='virus.js'></script>",
@@ -14,6 +14,14 @@ var mock = {
 	future:"2048-10-2 12:22",
 	now: new Date(),
 
+	nested:{
+		name:" eisneim  ",
+	},
+	array:[11,22,33],
+	arrayObj:[
+		{name:"  eisneim " },
+
+	],
 }
 
 describe('sanitizers',function(){
@@ -65,6 +73,44 @@ describe('sanitizers',function(){
 		expect( vc.sanitized.xxyz ).to.be.undefined
 	})
 
+	it("should support custom sanitizer",function(){
+		var vc = new VC( mock );
+		vc.check("name").required().sanitize(function(value){
+			return value.trim();
+		})
+
+		vc.check("age").required().sanitize(function(value){
+			return parseInt(value.toFixed());
+		})
+
+		expect(vc.sanitized["name"]).to.equal("eisneim")
+		expect(vc.sanitized["age"]).to.equal(24)
+
+	})
+
+	it("should sanitize nested object",function(){
+		var vc = new VC( mock );
+		vc.check("nested.name").required().trim()
+
+		expect( vc.sanitized.nested.name ).to.equal("eisneim")
+
+	})
+
+	it("should sanitize array item",function(){
+		var vc = new VC( mock );
+		vc.check("array").required().array(function(item,index){
+			item.sanitize(function(value){
+				return value + 1;
+			})
+		})
+		vc.check("arrayObj").required().array(function(item,index){
+			item.check("name").required().trim()
+		})
+		// console.log( vc.sanitized )
+		expect( vc.sanitized.array[0] ).to.equal(12)
+		expect( vc.sanitized.arrayObj[0].name ).to.equal("eisneim")
+
+	})
 
 });
 	

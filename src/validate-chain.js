@@ -122,13 +122,16 @@
 
 			if( this.target[ key ] !== undefined ){
 				this._san[key] = this.target[ key ];
-
+				this.isNested = false;
 			}else if( key.indexOf(".")>-1 ){ // nested object ?
+				this.isNested = true;
+
 				var parentKey = key.split(".")[0]
 				if(!this._san[ parentKey ]) 
 					this._san[ parentKey ] = this.target[ parentKey ];
 
 			}else{
+				this.isNested = false;
 				this.opt = true;
 			}
 
@@ -219,7 +222,7 @@
 			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
-			if( typeof checker !== "function" ) throw Error("$apply第一个参数必须为function")
+			if( typeof checker !== "function" ) throw new Error("$apply第一个参数必须为function")
 			if( !checker( val ) ){
 				this.addError( tip || `${this.key}: ${val}不是正确的格式` );
 			}
@@ -378,12 +381,42 @@
 		
 
 		// ----------------- sanitizers ---------------
+		setSanitizedVal( value ){
+			if( this.isNested ){
+				objectSetMethod(this._san, this.key, value )
+			} else if( this.inArrayMode ){
+				let {index,arrayKey} = this.inArray;
+				var item = this.target[arrayKey][index]
+				// pureArray: [1,2,"ss"]
+				var isPureArray = item && !item[this.key];
+				if(isPureArray){
+					this._san[arrayKey][index] = value;
+				}else{
+					this._san[arrayKey][index][this.key] = value;
+				}
+
+			} else {
+				this._san[this.key] = value;
+			}
+		}
+
+		sanitize( func ){
+			if( !this.next ) return this;
+			let val = this.currentVal;
+			if( this.opt && !val ) return this;
+
+			if( typeof func !== "function" ) throw new Error("sanitize第一个参数必须为function")
+			this.setSanitizedVal( func(val) )
+			
+			return this;
+		}
+
 		trim(){
 			if( !this.next ) return this;
 			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
-			this._san[this.key] = val.trim? val.trim() : val;
+			this.setSanitizedVal(val.trim? val.trim() : val);
 			
 			return this;
 		}
@@ -393,7 +426,7 @@
 			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
-			this._san[this.key] = val.replace(new RegExp('[^' + chars + ']+', 'g'), '');
+			this.setSanitizedVal(val.replace(new RegExp('[^' + chars + ']+', 'g'), ''));
 			
 			return this;
 		}
@@ -402,7 +435,7 @@
 			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
-			this._san[this.key] = val.replace(new RegExp('[' + chars + ']+', 'g'), '');
+			this.setSanitizedVal(val.replace(new RegExp('[' + chars + ']+', 'g'), ''))
 			
 			return this;
 		}
@@ -412,7 +445,7 @@
 			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
-			this._san[this.key] = (val.replace(/&/g, '&amp;')
+			this.setSanitizedVal( val.replace(/&/g, '&amp;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#x27;')
             .replace(/</g, '&lt;')
@@ -429,7 +462,7 @@
 			if (strict) {
 			    this._san[this.key] = val === '1' || val === 'true';
 			}
-			this._san[this.key] = val !== '0' && val !== 'false' && val !== '';
+			this.setSanitizedVal( val !== '0' && val !== 'false' && val !== '')
 			
 			return this;
 		}
@@ -439,10 +472,10 @@
 			if( this.opt && !val ) return this;
 
 			if (Object.prototype.toString.call(val) === '[object Date]') {
-			    this._san[this.key] =  val;
+			    this.setSanitizedVal(val);
 			}else{
 				let tt = Date.parse(val);
-				this._san[this.key] =  !isNaN(tt) ? new Date(tt) : null;
+				this.setSanitizedVal(!isNaN(tt) ? new Date(tt) : null);
 			}
 			
 			return this;
@@ -452,7 +485,7 @@
 			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
-			this._san[this.key] = parseFloat(val);
+			this.setSanitizedVal(parseFloat(val));
 			
 			return this;
 		}
@@ -461,7 +494,7 @@
 			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 
-			this._san[this.key] = parseInt(val, radix || 10);
+			this.setSanitizedVal(parseInt(val, radix || 10));
 			
 			return this;
 		}
@@ -470,11 +503,11 @@
 			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 			if (typeof val === 'object' && val !== null && val.toString) {
-			    this._san[this.key] = val.toString();
+			    this.setSanitizedVal(val.toString());
 			} else if (val === null || typeof val === 'undefined' || (isNaN(val) && !val.length)) {
-			    this._san[this.key] = '';
+			    this.setSanitizedVal( '' );
 			} else if (typeof val !== 'string') {
-			    this._san[this.key] = val + '';
+			    this.setSanitizedVal(val + '');
 			}
 			
 			return this;
@@ -510,8 +543,25 @@
 
 		return obj[ key ];
 	}
-
-
+	/**
+	 * [objectSetMethod description]
+	 * @param  {[type]} obj   [description]
+	 * @param  {[type]} key   [description]
+	 * @param  {[type]} value [description]
+	 * @return {[type]}       [description]
+	 */
+	function objectSetMethod(obj,key,value ){
+		if(!obj || !key ) throw new Error("objectSetMethod 需要object和key参数");
+		var keys = key.split(".");
+		try{
+			keys.reduce( 
+				(vv,field,index)=> keys[index+1]!==undefined ? vv[field] : vv[field]=value, obj
+			)
+			return true;
+		}catch(e){
+			return false;
+		}
+	}
 
 	if(process.browser){
 		window.VC = Validator;

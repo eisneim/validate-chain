@@ -144,12 +144,28 @@ expect(vc.errors).to.have.length(5); // -> pass
 
 
 ### sanitizers 消毒器
-想要被保存到vc.sanitized对象中的字段，必须使用vc.check("name"),如果该字段为可选的，则应该使用vc.check("name").optional();
+想要被保存到vc.sanitized对象中的字段，必须使用vc.check("name"),如果该字段为可选的，则应该使用vc.check("name").optional(); 目前版本只支持第一层数组的元素的消毒
 ```javascript
-// data = { name:"  小明 "}
-vc.check("name").required("名字为必填项").trim();
+var data = { 
+	name:"  小明 ",
+	nested:{
+		name:" 小明 "
+	},
+	array:[" 小明 "],
+	objOfArray:[
+		{name:" 小明 "},
+	]
+}
+vc.check("name").required().trim();
+vc.check("nested.name").required().trim();
+vc.check("array").required().array(function(item,index){
+	item.trim()
+})
+vc.check("objOfArray").required().array(function(item,index){
+	item.check("name").required().trim();
+})
 
-console.log( vc.sanitized ) // {name:"小明"}
+console.log( vc.sanitized ) // {name:"小明",....}
 ```
 
  - **trim()** 去掉首尾空格
