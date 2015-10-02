@@ -857,9 +857,7 @@ process.chdir = function (dir) {
 
 },{}],3:[function(require,module,exports){
 (function (process){
-/**
- * validator util to make form validation chainable for both serverside and clientside
- */
+// TODO: 1.check if(0) bug
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -961,6 +959,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 			// prevent accidently change original value;
 		}, {
 			key: 'alias',
+			// get nested object value
 
 			/**
     * set alias for a key and store them in a map: this._alias = {}
@@ -1010,6 +1009,37 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				return this;
 			}
 
+			/**
+    * check each item inside an array, set check in array mode;
+    * @param  {function} checker callback function
+    * @param  {[string]} tip     [description]
+    * @return {[object]}         
+    */
+		}, {
+			key: 'array',
+			value: function array(checker, tip) {
+				if (!this.next) return this;
+				var val = this.currentVal;
+				if (this.opt && !val) return this;
+
+				if (!Array.isArray(val)) {
+					this.addError(tip || this.key + ': 需要为一个数组');
+				} else if (typeof checker === "function") {
+					this.inArrayMode = true;
+					this.inArray.arrayKey = this.key;
+
+					var self = this;
+					val.forEach(function (item, index) {
+						self.inArray.index = index;
+						checker(self, index);
+					});
+
+					this.inArrayMode = false;
+				}
+
+				return this;
+			}
+
 			// ----------------- must in the beginning of the chain --------
 		}, {
 			key: 'required',
@@ -1021,10 +1051,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				}
 				if (!this.next) return this;
 				this.opt = false;
-				if (this.inArrayMode ? !this.target[this.key] : !this.currentVal) {
+				if (this.currentVal === undefined) {
 					this.addError(tip || this.key + ': 为必填字段');
 					this.next = false;
 				}
+
 				return this;
 			}
 		}, {
@@ -1113,37 +1144,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				if (typeof checker !== "function") throw new Error("$apply第一个参数必须为function");
 				if (!checker(val)) {
 					this.addError(tip || this.key + ': ' + val + '不是正确的格式');
-				}
-
-				return this;
-			}
-
-			/**
-    * check each item inside an array
-    * @param  {function} checker callback function
-    * @param  {[string]} tip     [description]
-    * @return {[object]}         
-    */
-		}, {
-			key: 'array',
-			value: function array(checker, tip) {
-				if (!this.next) return this;
-				var val = this.currentVal;
-				if (this.opt && !val) return this;
-
-				if (!Array.isArray(val)) {
-					this.addError(tip || this.key + ': 需要为一个数组');
-				} else if (typeof checker === "function") {
-					this.inArrayMode = true;
-					this.inArray.arrayKey = this.key;
-
-					var self = this;
-					val.forEach(function (item, index) {
-						self.inArray.index = index;
-						checker(self, index);
-					});
-
-					this.inArrayMode = false;
 				}
 
 				return this;
@@ -1491,11 +1491,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 			    index = _x4;
 			_again = false;
 
-			if (!obj || !key) return null;
-			// console.log("key:",key)
-			// console.log("obj:",obj)
-
-			if (key.indexOf(".") > -1) {
+			if (!obj || !key) return undefined;
+			if (!keys && key.indexOf(".") > -1) {
 				keys = key.split(".");
 				_x = obj[keys[0]];
 				_x2 = keys[0];
@@ -1546,6 +1543,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 	return Validator;
 });
+/**
+ * validator util to make form validation chainable for both serverside and clientside
+ */
 
 }).call(this,require("1YiZ5S"))
 },{"1YiZ5S":1,"validator":2}]},{},[3])

@@ -1,3 +1,4 @@
+// TODO: 1.check if(0) bug
 /**
  * validator util to make form validation chainable for both serverside and clientside
  */
@@ -93,7 +94,7 @@
 				return (item && item[this.key])? item[this.key] : item;
 			}
 
-			return objectGetMethod(this.target,this.key)
+			return objectGetMethod( this.target, this.key )// get nested object value
 		}
 		/**
 		 * set alias for a key and store them in a map: this._alias = {}
@@ -137,6 +138,34 @@
 
 			return this
 		}
+		/**
+		 * check each item inside an array, set check in array mode;
+		 * @param  {function} checker callback function
+		 * @param  {[string]} tip     [description]
+		 * @return {[object]}         
+		 */
+		array( checker ,tip){
+			if( !this.next ) return this;
+			let val = this.currentVal;
+			if( this.opt && !val ) return this;
+
+			if( !Array.isArray( val ) ){
+				this.addError( tip || `${this.key}: 需要为一个数组` )	
+			}else if( typeof checker === "function" ){
+				this.inArrayMode = true;
+				this.inArray.arrayKey = this.key;
+
+				var self = this;
+				val.forEach(function(item,index){
+					self.inArray.index = index;
+					checker( self,index )
+				});
+
+				this.inArrayMode = false;
+			}
+
+			return this;
+		}
 
 		// ----------------- must in the beginning of the chain --------
 		required( tip ){
@@ -147,10 +176,11 @@
 			}
 			if( !this.next ) return this;
 			this.opt = false;
-			if( this.inArrayMode? !this.target[this.key] : !this.currentVal ) {
+			if( this.currentVal === undefined ){
 				this.addError( tip || `${this.key}: 为必填字段` )
 				this.next = false;
 			}
+
 			return this;
 		}
 		optional(){
@@ -229,34 +259,7 @@
 
 			return this;
 		}
-		/**
-		 * check each item inside an array
-		 * @param  {function} checker callback function
-		 * @param  {[string]} tip     [description]
-		 * @return {[object]}         
-		 */
-		array( checker ,tip){
-			if( !this.next ) return this;
-			let val = this.currentVal;
-			if( this.opt && !val ) return this;
-
-			if( !Array.isArray( val ) ){
-				this.addError( tip || `${this.key}: 需要为一个数组` )	
-			}else if( typeof checker === "function" ){
-				this.inArrayMode = true;
-				this.inArray.arrayKey = this.key;
-
-				var self = this;
-				val.forEach(function(item,index){
-					self.inArray.index = index;
-					checker( self,index )
-				});
-
-				this.inArrayMode = false;
-			}
-
-			return this;
-		}
+		
 		date( tip ){
 			if( !this.next ) return this;
 			let val = this.currentVal;
@@ -526,11 +529,8 @@
 	 * @return {[type]}       [description]
 	 */
 	function objectGetMethod(obj,key ,keys,index){
-		if(!obj || !key ) return null;
-		// console.log("key:",key)
-		// console.log("obj:",obj)
-
-		if(key.indexOf(".")> -1){
+		if(!obj || !key ) return undefined;
+		if(!keys && key.indexOf(".")> -1){
 			keys = key.split(".");	
 			return objectGetMethod( obj[ keys[0] ], keys[0], keys, 1 );
 		}

@@ -83,20 +83,20 @@ describe('Validator-Chain checkers',function(){
 			email:"badeEmail.com"
 		} );
 		vc.check("levels").alias("等级").array(function(item,index){
-			item.max(3)
+			item.required().max(3)
 		})
 
 		expect(vc.errors).to.have.length(2);
 
 		vc.check("posts").array( function( item,index ){
-			item.check("date").date();
+			item.check("date").required().date();
 			item.check("name").required();
 			// item.check("title").regx(/title/)
 		})
-		expect(vc.errors).to.have.length(5);
+		expect(vc.errors).to.have.length(3);
 
 		vc.check("email").email();
-		expect(vc.errors).to.have.length(6);
+		expect(vc.errors).to.have.length(4);
 	})
 
 

@@ -19,8 +19,7 @@ var mock = {
 	},
 	array:[11,22,33],
 	arrayObj:[
-		{name:"  eisneim " },
-
+		{name:"  eisneim ", array:[11,22] },
 	],
 }
 
@@ -105,6 +104,7 @@ describe('sanitizers',function(){
 		})
 		vc.check("arrayObj").required().array(function(item,index){
 			item.check("name").required().trim()
+			item.check("array").required().array();
 		})
 		// console.log( vc.sanitized )
 		expect( vc.sanitized.array[0] ).to.equal(12)
