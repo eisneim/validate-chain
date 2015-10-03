@@ -16,11 +16,14 @@ var mock = {
 
 	nested:{
 		name:" eisneim  ",
+		array:[ " eisneim "],
+		arrayNestedObj:[{user:{name:" eisneim "}}]
 	},
 	array:[11,22,33],
 	arrayObj:[
 		{name:"  eisneim ", array:[11,22] },
 	],
+	arrayNestedObj:[{user:{name:" eisneim "}}]
 }
 
 describe('sanitizers',function(){
@@ -87,15 +90,25 @@ describe('sanitizers',function(){
 
 	})
 
-	it("should sanitize nested object",function(){
+	it("should sanitize nested object, and array inside nested",function(){
 		var vc = new VC( mock );
 		vc.check("nested.name").required().trim()
+		vc.check("nested.array").required().array(function(item,index){
+			item.trim();
+		})
+		vc.check("nested.arrayNestedObj").required().array(function(item,index){
+			item.check("user.name").required().trim();
+		})
 
+		// console.log( JSON.stringify(vc.sanitized,null," ") )
+		expect( vc.sanitized.nested.array[0] ).to.equal("eisneim")
+		expect( vc.sanitized.nested.arrayNestedObj[0].user.name ).to.equal("eisneim")
 		expect( vc.sanitized.nested.name ).to.equal("eisneim")
 
 	})
 
-	it("should sanitize array item",function(){
+
+	it("should sanitize array item,and nested inside array",function(){
 		var vc = new VC( mock );
 		vc.check("array").required().array(function(item,index){
 			item.sanitize(function(value){
@@ -106,10 +119,13 @@ describe('sanitizers',function(){
 			item.check("name").required().trim()
 			item.check("array").required().array();
 		})
-		// console.log( vc.sanitized )
+		vc.check("arrayNestedObj").required().array(function(item,index){
+			item.check("user.name").required().trim()
+		})
+
 		expect( vc.sanitized.array[0] ).to.equal(12)
 		expect( vc.sanitized.arrayObj[0].name ).to.equal("eisneim")
-
+		expect( vc.sanitized.arrayNestedObj[0].user.name ).to.equal("eisneim")
 	})
 
 });

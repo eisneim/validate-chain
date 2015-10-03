@@ -54,17 +54,16 @@
 		get sanitized(){
 			return Object.keys(this._san).length>0?this._san : null;
 		}
-		addError( msg ){
-			if(this._san[this.key]) delete this._san[this.key]
+		addError( msg ){		
 
 			if( this.inArrayMode ){
 				let {index,arrayKey} = this.inArray;
 				var arrayAlias = this._alias[arrayKey];
-				var item = this.target[arrayKey][index]
+				var item = objectGetMethod(this.target, arrayKey)[index];
 
 				var alias = this._alias[ arrayKey+"."+index+"."+this.key ]
 				// pureArray: [1,2,"ss"]
-				var isPureArray = item && !item[this.key];
+				var isPureArray = item && !objectGetMethod(item,this.key);
 				if(isPureArray){
 					alias = (arrayAlias||arrayKey)+
 					"."+index;
@@ -72,9 +71,19 @@
 					alias = (arrayAlias||arrayKey)+"."+index+"."+
 					(alias||this.key)
 				}
-				
+				// remove invalid date from _san
+				if(objectGetMethod(this._san,arrayKey )[index]){
+					objectSetMethod(
+						this._san, 
+						arrayKey+"."+index+(isPureArray?"":this.key) 
+						,undefined
+					)
+				}
+
 
 			}else{
+				// remove invalid date from _san
+				if(objectGetMethod(this._san,this.key)) objectSetMethod(this._san,this.key,undefined)
 				var alias = this._alias[this.key];
 			}
 
@@ -89,11 +98,17 @@
 		get currentVal(){
 			
 			if( this.inArrayMode ){
-				let array = this.target[this.inArray.arrayKey];
-				let item = array[this.inArray.index];
-				return (item && item[this.key])? item[this.key] : item;
+				var array = objectGetMethod( this.target, this.inArray.arrayKey );
+				// nested first:  a.b.c[array]
+				// if( this.inArray.arrayKey.indexOf(".")> -1 ){  
+				// if( this.key.indexOf(".")> -1 ){ // [{a:{b:v}}]
+				
+				//only in arrayMode
+				var item = array[this.inArray.index];
+				var insideArray = objectGetMethod(item,this.key);
+				return (item && insideArray)? insideArray : item;
 			}
-
+			// normal mode or nested mode
 			return objectGetMethod( this.target, this.key )// get nested object value
 		}
 		/**
@@ -120,19 +135,14 @@
 			this.key = key;
 			this.next = true;
 			this.opt = false;
+			let val = this.currentVal;
 
-			if( this.target[ key ] !== undefined ){
-				this._san[key] = this.target[ key ];
-				this.isNested = false;
-			}else if( key.indexOf(".")>-1 ){ // nested object ?
-				this.isNested = true;
-
-				var parentKey = key.split(".")[0]
-				if(!this._san[ parentKey ]) 
-					this._san[ parentKey ] = this.target[ parentKey ];
-
+			if( val !== undefined ){
+				if( !this.inArrayMode ){
+					// save it to _san
+					objectSetMethod(this._san,key, val)
+				}
 			}else{
-				this.isNested = false;
 				this.opt = true;
 			}
 
@@ -154,6 +164,8 @@
 			}else if( typeof checker === "function" ){
 				this.inArrayMode = true;
 				this.inArray.arrayKey = this.key;
+				// copy the array to _san
+				objectSetMethod(this._san, this.key, val )
 
 				var self = this;
 				val.forEach(function(item,index){
@@ -332,34 +344,34 @@
 			return this;
 		}
 		phone( tip ){
-			return this.regx( regx.phone , tip || `${this.key}: ${this.target[this.key]}不是常规的手机号码` );
+			return this.regx( regx.phone , tip || `${this.key}: ${this.currentVal}不是常规的手机号码` );
 		}
 		numeric(tip){
-			return this.regx( regx.numeric, tip || `${this.key}: ${this.target[this.key]}必须为纯数字` );
+			return this.regx( regx.numeric, tip || `${this.key}: ${this.currentVal}必须为纯数字` );
 		}
 		decimal(tip){
-			return this.regx( regx.decimal, tip || `${this.key}: ${this.target[this.key]}必须为小数格式数字` );	
+			return this.regx( regx.decimal, tip || `${this.key}: ${this.currentVal}必须为小数格式数字` );	
 		}
 		float(tip){
-			return this.regx( regx.float, tip || `${this.key}: ${this.target[this.key]}必须为float格式数字` );	
+			return this.regx( regx.float, tip || `${this.key}: ${this.currentVal}必须为float格式数字` );	
 		}
 		hex( tip ){
-			return this.regx( regx.hexadecimal, tip || `${this.key}: ${this.target[this.key]}必须为16进制数字` );
+			return this.regx( regx.hexadecimal, tip || `${this.key}: ${this.currentVal}必须为16进制数字` );
 		}
 		alpha(tip){
-			return this.regx( regx.alpha, tip || `${this.key}: ${this.target[this.key]}必须为纯字母` );
+			return this.regx( regx.alpha, tip || `${this.key}: ${this.currentVal}必须为纯字母` );
 		}
 		alphanumeric(tip){
-			return this.regx( regx.alphanumeric, tip || `${this.key}: ${this.target[this.key]}必须为纯字母和数字的组合` );
+			return this.regx( regx.alphanumeric, tip || `${this.key}: ${this.currentVal}必须为纯字母和数字的组合` );
 		}
 		ascii(tip){
-			return this.regx( regx.ascii, tip || `${this.key}: ${this.target[this.key]}必须为符合规范的ASCII码` );
+			return this.regx( regx.ascii, tip || `${this.key}: ${this.currentVal}必须为符合规范的ASCII码` );
 		}
 		objectId( tip ){
-			return this.regx( regx.objectId , tip || `${this.target[this.key]}不是常规的ObjectId` );
+			return this.regx( regx.objectId , tip || `${this.currentVal}不是常规的ObjectId` );
 		}
 		base64(tip){
-			return this.regx( regx.base64, tip || `${this.key}: ${this.target[this.key]}必须为符合规范的Base64编码` );
+			return this.regx( regx.base64, tip || `${this.key}: ${this.currentVal}必须为符合规范的Base64编码` );
 		}
 		creditCard(tip){
 			if( !this.next ) return this;
@@ -385,21 +397,21 @@
 
 		// ----------------- sanitizers ---------------
 		setSanitizedVal( value ){
-			if( this.isNested ){
-				objectSetMethod(this._san, this.key, value )
-			} else if( this.inArrayMode ){
+			if( this.inArrayMode ){
 				let {index,arrayKey} = this.inArray;
-				var item = this.target[arrayKey][index]
+				var item = objectGetMethod(this.target,arrayKey)[index]
 				// pureArray: [1,2,"ss"]
-				var isPureArray = item && !item[this.key];
+				var isPureArray = item && !objectGetMethod(item,this.key);
 				if(isPureArray){
-					this._san[arrayKey][index] = value;
+					// this._san[arrayKey][index] = value;
+					objectSetMethod(this._san, arrayKey+"."+index, value )
 				}else{
-					this._san[arrayKey][index][this.key] = value;
+					// this._san[arrayKey][index][this.key] = value;
+					objectSetMethod(this._san, arrayKey+"."+index+"."+this.key , value )
 				}
 
 			} else {
-				this._san[this.key] = value;
+				objectSetMethod(this._san, this.key, value )
 			}
 		}
 
@@ -463,7 +475,7 @@
 			let val = this.currentVal;
 			if( this.opt && !val ) return this;
 			if (strict) {
-			    this._san[this.key] = val === '1' || val === 'true';
+			    this.setSanitizedVal( val === '1' || val === 'true' );
 			}
 			this.setSanitizedVal( val !== '0' && val !== 'false' && val !== '')
 			
@@ -554,9 +566,16 @@
 		if(!obj || !key ) throw new Error("objectSetMethod 需要object和key参数");
 		var keys = key.split(".");
 		try{
-			keys.reduce( 
-				(vv,field,index)=> keys[index+1]!==undefined ? vv[field] : vv[field]=value, obj
-			)
+			keys.reduce( (vv,field,index)=> {
+					keys[index+1]!==undefined ? vv[field] : vv[field]=value
+					if( keys[index+1]!==undefined ){ // last key
+						if( !vv[field] ) 
+							vv[field] = regx.numeric.test(keys[index+1])? [] : {};
+						return vv[field]
+					}
+					// this is the last key;
+					return vv[field]=value
+				}, obj )
 			return true;
 		}catch(e){
 			return false;

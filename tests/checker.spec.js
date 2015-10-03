@@ -26,6 +26,8 @@ var mock = {
 	dateInvalid:"2015-20-3 12:22",
 
 	nested:{
+		array:[11,22],
+		arrayObj:[{user:{ age:16 }} ],
 		level1:{
 			level2:{
 				value:12
@@ -162,6 +164,16 @@ describe('Validator-Chain checkers',function(){
 
 	it("should check nested object property",function(){
 		var vc = new VC( mock );
+		vc.check("nested.array").required().array(function(item,index){
+			item.max(13)
+		})
+		// console.log( vc.errors )
+
+		vc.check("nested.arrayObj").required().array(function(item,index){
+			item.check("user.age").required().min(18)
+		})
+		expect( vc.errors ).to.have.length(2);
+
 		vc.check("nested.level1.value").$apply(function(value){
 			expect(value).to.equals(24)
 			return true
@@ -171,7 +183,7 @@ describe('Validator-Chain checkers',function(){
 			expect(value).to.equals(12)
 			return true
 		}).required().max(18)
-		expect( vc.errors ).to.have.length(1);
+		expect( vc.errors ).to.have.length(3);
 		expect( vc.sanitized ).have.property("nested");
 	})
 

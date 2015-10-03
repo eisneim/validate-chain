@@ -926,7 +926,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		_createClass(Validator, [{
 			key: 'addError',
 			value: function addError(msg) {
-				if (this._san[this.key]) delete this._san[this.key];
 
 				if (this.inArrayMode) {
 					var _inArray = this.inArray;
@@ -934,17 +933,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 					var arrayKey = _inArray.arrayKey;
 
 					var arrayAlias = this._alias[arrayKey];
-					var item = this.target[arrayKey][index];
+					var item = objectGetMethod(this.target, arrayKey)[index];
 
 					var alias = this._alias[arrayKey + "." + index + "." + this.key];
 					// pureArray: [1,2,"ss"]
-					var isPureArray = item && !item[this.key];
+					var isPureArray = item && !objectGetMethod(item, this.key);
 					if (isPureArray) {
 						alias = (arrayAlias || arrayKey) + "." + index;
 					} else {
 						alias = (arrayAlias || arrayKey) + "." + index + "." + (alias || this.key);
 					}
+					// remove invalid date from _san
+					if (objectGetMethod(this._san, arrayKey)[index]) {
+						objectSetMethod(this._san, arrayKey + "." + index + (isPureArray ? "" : this.key), undefined);
+					}
 				} else {
+					// remove invalid date from _san
+					if (objectGetMethod(this._san, this.key)) objectSetMethod(this._san, this.key, undefined);
 					var alias = this._alias[this.key];
 				}
 
@@ -991,18 +996,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				this.key = key;
 				this.next = true;
 				this.opt = false;
+				var val = this.currentVal;
 
-				if (this.target[key] !== undefined) {
-					this._san[key] = this.target[key];
-					this.isNested = false;
-				} else if (key.indexOf(".") > -1) {
-					// nested object ?
-					this.isNested = true;
-
-					var parentKey = key.split(".")[0];
-					if (!this._san[parentKey]) this._san[parentKey] = this.target[parentKey];
+				if (val !== undefined) {
+					if (!this.inArrayMode) {
+						// save it to _san
+						objectSetMethod(this._san, key, val);
+					}
 				} else {
-					this.isNested = false;
 					this.opt = true;
 				}
 
@@ -1027,6 +1028,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				} else if (typeof checker === "function") {
 					this.inArrayMode = true;
 					this.inArray.arrayKey = this.key;
+					// copy the array to _san
+					objectSetMethod(this._san, this.key, val);
 
 					var self = this;
 					val.forEach(function (item, index) {
@@ -1236,52 +1239,52 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		}, {
 			key: 'phone',
 			value: function phone(tip) {
-				return this.regx(regx.phone, tip || this.key + ': ' + this.target[this.key] + '不是常规的手机号码');
+				return this.regx(regx.phone, tip || this.key + ': ' + this.currentVal + '不是常规的手机号码');
 			}
 		}, {
 			key: 'numeric',
 			value: function numeric(tip) {
-				return this.regx(regx.numeric, tip || this.key + ': ' + this.target[this.key] + '必须为纯数字');
+				return this.regx(regx.numeric, tip || this.key + ': ' + this.currentVal + '必须为纯数字');
 			}
 		}, {
 			key: 'decimal',
 			value: function decimal(tip) {
-				return this.regx(regx.decimal, tip || this.key + ': ' + this.target[this.key] + '必须为小数格式数字');
+				return this.regx(regx.decimal, tip || this.key + ': ' + this.currentVal + '必须为小数格式数字');
 			}
 		}, {
 			key: 'float',
 			value: function float(tip) {
-				return this.regx(regx.float, tip || this.key + ': ' + this.target[this.key] + '必须为float格式数字');
+				return this.regx(regx.float, tip || this.key + ': ' + this.currentVal + '必须为float格式数字');
 			}
 		}, {
 			key: 'hex',
 			value: function hex(tip) {
-				return this.regx(regx.hexadecimal, tip || this.key + ': ' + this.target[this.key] + '必须为16进制数字');
+				return this.regx(regx.hexadecimal, tip || this.key + ': ' + this.currentVal + '必须为16进制数字');
 			}
 		}, {
 			key: 'alpha',
 			value: function alpha(tip) {
-				return this.regx(regx.alpha, tip || this.key + ': ' + this.target[this.key] + '必须为纯字母');
+				return this.regx(regx.alpha, tip || this.key + ': ' + this.currentVal + '必须为纯字母');
 			}
 		}, {
 			key: 'alphanumeric',
 			value: function alphanumeric(tip) {
-				return this.regx(regx.alphanumeric, tip || this.key + ': ' + this.target[this.key] + '必须为纯字母和数字的组合');
+				return this.regx(regx.alphanumeric, tip || this.key + ': ' + this.currentVal + '必须为纯字母和数字的组合');
 			}
 		}, {
 			key: 'ascii',
 			value: function ascii(tip) {
-				return this.regx(regx.ascii, tip || this.key + ': ' + this.target[this.key] + '必须为符合规范的ASCII码');
+				return this.regx(regx.ascii, tip || this.key + ': ' + this.currentVal + '必须为符合规范的ASCII码');
 			}
 		}, {
 			key: 'objectId',
 			value: function objectId(tip) {
-				return this.regx(regx.objectId, tip || this.target[this.key] + '不是常规的ObjectId');
+				return this.regx(regx.objectId, tip || this.currentVal + '不是常规的ObjectId');
 			}
 		}, {
 			key: 'base64',
 			value: function base64(tip) {
-				return this.regx(regx.base64, tip || this.key + ': ' + this.target[this.key] + '必须为符合规范的Base64编码');
+				return this.regx(regx.base64, tip || this.key + ': ' + this.currentVal + '必须为符合规范的Base64编码');
 			}
 		}, {
 			key: 'creditCard',
@@ -1312,23 +1315,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		}, {
 			key: 'setSanitizedVal',
 			value: function setSanitizedVal(value) {
-				if (this.isNested) {
-					objectSetMethod(this._san, this.key, value);
-				} else if (this.inArrayMode) {
+				if (this.inArrayMode) {
 					var _inArray3 = this.inArray;
 					var index = _inArray3.index;
 					var arrayKey = _inArray3.arrayKey;
 
-					var item = this.target[arrayKey][index];
+					var item = objectGetMethod(this.target, arrayKey)[index];
 					// pureArray: [1,2,"ss"]
-					var isPureArray = item && !item[this.key];
+					var isPureArray = item && !objectGetMethod(item, this.key);
 					if (isPureArray) {
-						this._san[arrayKey][index] = value;
+						// this._san[arrayKey][index] = value;
+						objectSetMethod(this._san, arrayKey + "." + index, value);
 					} else {
-						this._san[arrayKey][index][this.key] = value;
+						// this._san[arrayKey][index][this.key] = value;
+						objectSetMethod(this._san, arrayKey + "." + index + "." + this.key, value);
 					}
 				} else {
-					this._san[this.key] = value;
+					objectSetMethod(this._san, this.key, value);
 				}
 			}
 		}, {
@@ -1394,7 +1397,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				var val = this.currentVal;
 				if (this.opt && !val) return this;
 				if (strict) {
-					this._san[this.key] = val === '1' || val === 'true';
+					this.setSanitizedVal(val === '1' || val === 'true');
 				}
 				this.setSanitizedVal(val !== '0' && val !== 'false' && val !== '');
 
@@ -1469,11 +1472,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 			get: function get() {
 
 				if (this.inArrayMode) {
-					var array = this.target[this.inArray.arrayKey];
-					var item = array[this.inArray.index];
-					return item && item[this.key] ? item[this.key] : item;
-				}
+					var array = objectGetMethod(this.target, this.inArray.arrayKey);
+					// nested first:  a.b.c[array]
+					// if( this.inArray.arrayKey.indexOf(".")> -1 ){ 
+					// if( this.key.indexOf(".")> -1 ){ // [{a:{b:v}}]
 
+					//only in arrayMode
+					var item = array[this.inArray.index];
+					var insideArray = objectGetMethod(item, this.key);
+					return item && insideArray ? insideArray : item;
+				}
+				// normal mode or nested mode
 				return objectGetMethod(this.target, this.key);
 			}
 		}]);
@@ -1528,7 +1537,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		var keys = key.split(".");
 		try {
 			keys.reduce(function (vv, field, index) {
-				return keys[index + 1] !== undefined ? vv[field] : vv[field] = value;
+				keys[index + 1] !== undefined ? vv[field] : vv[field] = value;
+				if (keys[index + 1] !== undefined) {
+					// last key
+					if (!vv[field]) vv[field] = regx.numeric.test(keys[index + 1]) ? [] : {};
+					return vv[field];
+				}
+				// this is the last key;
+				return vv[field] = value;
 			}, obj);
 			return true;
 		} catch (e) {

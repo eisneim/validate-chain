@@ -98,17 +98,20 @@ gulp.task('test',function(){
 })
 
 gulp.task('test_handle_err',["es6"],function(){
-    gulp.src('./tests/**/*.spec.js', {read: false})
-      .pipe(mocha({
-      	reporter: 'spec',
-      	// compilers: 'js:babel/register'
-    }))
-    .on( "error", handleError); // spec,dot, nyan,list,doc,min,Progress, 
+   setTimeout(function(){
+   		gulp.src('./tests/**/*.spec.js', {read: false})
+   		  .pipe(mocha({
+   		  	reporter: 'spec',
+   		  	// compilers: 'js:babel/register'
+   		}))
+   		.on( "error", handleError); // spec,dot, nyan,list,doc,min,Progress, 
+   
+   },200);
 })
 
 
 gulp.task('watch-test',function(){
-	gulp.watch( 'src/**/*.js' ,['test_handle_err']);
+	gulp.watch( './src/**/*.js' ,['test_handle_err']);
   gulp.watch('./tests/**/*.spec.js', ['test_handle_err']);
 })
 
