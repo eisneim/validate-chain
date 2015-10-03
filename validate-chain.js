@@ -1,4 +1,5 @@
 // TODO: 1.check if(0) bug
+// 2.options to config error format;
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -40,6 +41,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 			this.key = null; // temporarily store field name
 			this._errs = [];
+			this.errorFields = [];
 			this._san = {}; // sanitized object
 			this._alias = {}; // key: 中文名
 			this.opt = takeWhatWeHave ? true : false;
@@ -51,12 +53,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				index: 0,
 				arrayKey: null
 			};
+			// ------
+			this.getter = objectGetMethod;
+			this.setter = objectSetMethod;
 		}
 
 		// end of class
 
 		/**
-   * [objectGetMethod description]
+   * get nested property for an object or array
    * @param  {[type]} obj   [description]
    * @param  {[type]} key   [description]
    * @param  {[type]} keys  [description]
@@ -84,6 +89,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 					} else {
 						alias = (arrayAlias || arrayKey) + "." + index + "." + (alias || this.key);
 					}
+					this.errorFields.push(arrayKey + "." + index + (isPureArray ? "" : "." + this.key));
 					// remove invalid date from _san
 					if (objectGetMethod(this._san, arrayKey)[index]) {
 						objectSetMethod(this._san, arrayKey + "." + index + (isPureArray ? "" : this.key), undefined);
@@ -92,6 +98,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 					// remove invalid date from _san
 					if (objectGetMethod(this._san, this.key)) objectSetMethod(this._san, this.key, undefined);
 					var alias = this._alias[this.key];
+					this.errorFields.push(this.key);
 				}
 
 				if (alias) {
@@ -667,7 +674,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		}
 	}
 	/**
-  * [objectSetMethod description]
+  * set nested property for an object or array
   * @param  {[type]} obj   [description]
   * @param  {[type]} key   [description]
   * @param  {[type]} value [description]

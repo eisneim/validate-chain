@@ -106,7 +106,7 @@ gulp.task('test_handle_err',["es6"],function(){
    		}))
    		.on( "error", handleError); // spec,dot, nyan,list,doc,min,Progress, 
    
-   },200);
+   },500);
 })
 
 

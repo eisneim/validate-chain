@@ -48,6 +48,7 @@ validator.loginForm() => {
 	//["描述: 为必填字段", "age: 最小值为23", "性别: 不合格/male|female/的格式", "ss.kjk不是常规的email"]
 	console.log( vc.sanitized )
 	// {name: "eisneim"}
+	// vc.errorFields: [ "desc", "age", ... ]
 }
 ```
 
@@ -113,6 +114,7 @@ expect(vc.errors).to.have.length(5); // -> pass
 ###API
  - **check(key)** 以它作为开始，如果对象数据有多层，可使用"a.b.c"来检查内部元素
  - **errors** 检查完后，读取这个属性即可获取所有的错误提示
+ - **errorFields** 包含所有出错的字段的一个数组：["age","user.username","array.0.name"]
  - **sanitized** 检查完后读取这个属性即可获得消毒后的属性
  - **alias(name)** 如果设置了别名，错误信息将以这个别名开始
  - **required([tip])** 必填，大部分情况下需要在链中指明，

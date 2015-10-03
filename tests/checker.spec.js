@@ -99,6 +99,7 @@ describe('Validator-Chain checkers',function(){
 
 		vc.check("email").email();
 		expect(vc.errors).to.have.length(4);
+		expect(vc.errorFields).to.have.length(4);
 	})
 
 

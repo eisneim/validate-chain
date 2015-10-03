@@ -1,4 +1,5 @@
 // TODO: 1.check if(0) bug
+// 2.options to config error format;
 /**
  * validator util to make form validation chainable for both serverside and clientside
  */
@@ -35,6 +36,7 @@
 		constructor( target, takeWhatWeHave ){
 			this.key = null; // temporarily store field name
 			this._errs = [];
+			this.errorFields = [];
 			this._san = {}; // sanitized object
 			this._alias = {}; // key: 中文名
 			this.opt = takeWhatWeHave? true: false;
@@ -46,7 +48,9 @@
 				index:0,
 				arrayKey: null,
 			}
-
+			// ------ 
+			this.getter = objectGetMethod;
+			this.setter = objectSetMethod;
 		}
 		get errors(){
 			return this._errs[0]?this._errs : null;
@@ -57,6 +61,7 @@
 		addError( msg ){		
 
 			if( this.inArrayMode ){
+
 				let {index,arrayKey} = this.inArray;
 				var arrayAlias = this._alias[arrayKey];
 				var item = objectGetMethod(this.target, arrayKey)[index];
@@ -71,6 +76,7 @@
 					alias = (arrayAlias||arrayKey)+"."+index+"."+
 					(alias||this.key)
 				}
+				this.errorFields.push( arrayKey+"."+index+( isPureArray? "":"."+this.key) )
 				// remove invalid date from _san
 				if(objectGetMethod(this._san,arrayKey )[index]){
 					objectSetMethod(
@@ -85,6 +91,7 @@
 				// remove invalid date from _san
 				if(objectGetMethod(this._san,this.key)) objectSetMethod(this._san,this.key,undefined)
 				var alias = this._alias[this.key];
+				this.errorFields.push( this.key )
 			}
 
 			if( alias ){
@@ -533,7 +540,7 @@
 	
 
 	/**
-	 * [objectGetMethod description]
+	 * get nested property for an object or array
 	 * @param  {[type]} obj   [description]
 	 * @param  {[type]} key   [description]
 	 * @param  {[type]} keys  [description]
@@ -556,7 +563,7 @@
 		return obj[ key ];
 	}
 	/**
-	 * [objectSetMethod description]
+	 * set nested property for an object or array
 	 * @param  {[type]} obj   [description]
 	 * @param  {[type]} key   [description]
 	 * @param  {[type]} value [description]
