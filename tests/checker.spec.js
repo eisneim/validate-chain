@@ -14,7 +14,6 @@ var mock = {
 	objectId: "55d855455e7ad2da26025512",
 	base64: tmp.toString("base64"),
 	ascii: tmp.toString("ascii"),
-	buget: "￥100",
 	hex: tmp.toString("hex"),
 	alpha:"soemstringABC",
 	alphanumeric:"asd23234",
@@ -134,7 +133,6 @@ describe('Validator-Chain checkers',function(){
 		vc.check("objectId").objectId();
 		vc.check("base64").base64();
 		vc.check("ascii").ascii();
-		vc.check("buget").currency()
 		expect( vc.errors ).to.have.length(3);
 	})
 

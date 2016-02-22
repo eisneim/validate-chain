@@ -1,6 +1,6 @@
 {
   "name": "validate-chain",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "表单验证链，以及中文验证错误反馈信息",
   "main": "validate-chain.js",
   "scripts": {
@@ -22,9 +22,6 @@
     "url": "https://github.com/eisneim/validate-chain/issues"
   },
   "homepage": "https://github.com/eisneim/validate-chain#readme",
-  "dependencies": {
-    "validator": "^4.0.6"
-  },
   "devDependencies": {
     "babel": "^5.8.23",
     "babel-eslint": "^4.1.3",

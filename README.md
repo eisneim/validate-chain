@@ -3,7 +3,7 @@ Validate-Chain
 表单验证链，以及中文验证错误反馈信息
 
 ###Motivation 为啥要写这个工具？
-以NODE作为后端开发单页应用时，前后端对表单的验证的逻辑和返回的提示信息其实是一样的，应该做到前后端共用验证逻辑，在React应用中这一点就更重要了。目前后端可以使用的koa-validate,express-validate等验证util又不能在前端使用，而且似乎目前还没有一个是中文提示信息的，于是就决定自己写一个前后端共用的链状验证器。验证器去检查多个字段并在最后返回一个提示信息的数组，已经消毒后的数据；
+以NODE作为后端开发单页应用时，前后端对表单的验证和消毒的逻辑以及返回的提示信息其实是一样的，应该做到前后端共用验证逻辑。目前后端可以使用的koa-validate,express-validate等验证中间件不能在前端使用。验证器应该去检查多个字段并在最后返回一个提示信息的数组，和已经消毒后的数据；
 
 ### 之前在angular项目中这样写过
 重复的if return, 以及大量的错误提示信息。。。。。
@@ -141,8 +141,6 @@ expect(vc.errors).to.have.length(5); // -> pass
  - **objectId([tip])** 是否为Mongodb ObjectID
  - **base64([tip])** 是否为base64格式字符串编码
  - **creditCard([tip])** 是否为信用卡
- - **currency(options,[tip])** 是否为货币，默认值：{symbol: '￥', require_symbol: false, allow_space_after_symbol: false, symbol_after_digits: false, allow_negatives: true, parens_for_negatives: false, negative_sign_before_digits: false, negative_sign_after_digits: false, allow_negative_sign_placeholder: false, thousands_separator: ',', decimal_separator: '.', allow_space_after_digits: false }.
- -
 
 
 ### sanitizers 消毒器
