@@ -1,5 +1,5 @@
-// TODO: 1.check if(0) bug
-// 2.options to config error format;
+// TODO:
+// 1. check('nested.item') if didn't check('nested') first, will case sanitized.nested === undefined
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -73,7 +73,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             alias = (arrayAlias || arrayKey) + "." + index + "." + (alias || this.key);
           }
           this.errorFields.push(arrayKey + "." + index + (isPureArray ? "" : "." + this.key));
-          // remove invalid date from _san
+          // remove invalid data from _san
           if (objectGetMethod(this._san, arrayKey)[index]) {
             objectSetMethod(this._san, arrayKey + "." + index + (isPureArray ? "" : this.key), undefined);
           }
@@ -678,6 +678,4 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
   return Validator;
 });
-/**
- * validator util to make form validation chainable for both serverside and clientside
- */
+// 2.options to config error format;

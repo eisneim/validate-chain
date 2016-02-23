@@ -1,5 +1,5 @@
 var expect = require('chai').expect;
-var VC = require("../validate-chain.js");
+var VC = require("../src/validate-chain.js");
 var tmp = new Buffer("some value");
 
 var mock = {
@@ -121,19 +121,22 @@ describe('Validator-Chain checkers',function(){
 		expect( vc.errors ).to.have.length(1);
 
 		vc.check("email").email()
-		vc.check("email2").email(null,{ allow_display_name: true })
 		vc.check("phone").email()
 		expect( vc.errors ).to.have.length(2);
 
 		vc.check("site").URL()
 		vc.check("siteInvalid").URL()
 		vc.check("phone").URL()
+		console.log(vc.errors)
+
 		expect( vc.errors ).to.have.length(3);
 
 		vc.check("objectId").objectId();
 		vc.check("base64").base64();
 		vc.check("ascii").ascii();
 		expect( vc.errors ).to.have.length(3);
+
+
 	})
 
 	it("can deal with Date",function(){
@@ -153,6 +156,7 @@ describe('Validator-Chain checkers',function(){
 		var vc = new VC( mock );
 		vc.check("hex").hex()
 		vc.check("age").between(18,30).max(26).min(21)
+		vc.check('name').between(10,20)
 		vc.check("float").float()
 		vc.check("decimal").decimal()
 		vc.check("alpha").alpha()
@@ -163,6 +167,7 @@ describe('Validator-Chain checkers',function(){
 
 	it("should check nested object property",function(){
 		var vc = new VC( mock );
+		vc.check('nested')
 		vc.check("nested.array").required().array(function(item,index){
 			item.max(13)
 		})
@@ -171,6 +176,7 @@ describe('Validator-Chain checkers',function(){
 		vc.check("nested.arrayObj").required().array(function(item,index){
 			item.check("user.age").required().min(18)
 		})
+		console.log(vc.errors)
 		expect( vc.errors ).to.have.length(2);
 
 		vc.check("nested.level1.value").$apply(function(value){
@@ -182,6 +188,8 @@ describe('Validator-Chain checkers',function(){
 			expect(value).to.equals(12)
 			return true
 		}).required().max(18)
+		// console.log(vc.sanitized)
+		// console.log(vc.errors)
 		expect( vc.errors ).to.have.length(3);
 		expect( vc.sanitized ).have.property("nested");
 	})

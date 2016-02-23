@@ -1,8 +1,7 @@
-// TODO: 1.check if(0) bug
+// TODO: 
+// 1. check('nested.item') if didn't check('nested') first, will case sanitized.nested === undefined
 // 2.options to config error format;
-/**
- * validator util to make form validation chainable for both serverside and clientside
- */
+
 (function (name, definition) {
   if (typeof exports !== 'undefined' && typeof module !== 'undefined') {
     module.exports = definition();
@@ -38,9 +37,11 @@
     get errors(){
       return this._errs[0]?this._errs : null;
     }
+    
     get sanitized(){
       return Object.keys(this._san).length>0?this._san : null;
     }
+
     addError( msg ){    
 
       if( this.inArrayMode ){
@@ -60,15 +61,14 @@
           (alias||this.key)
         }
         this.errorFields.push( arrayKey+"."+index+( isPureArray? "":"."+this.key) )
-        // remove invalid date from _san
-        if(objectGetMethod(this._san,arrayKey )[index]){
+        // remove invalid data from _san
+        if(objectGetMethod(this._san,arrayKey)[index]){
           objectSetMethod(
             this._san, 
             arrayKey+"."+index+(isPureArray?"":this.key) 
             ,undefined
           )
         }
-
 
       }else{
         // remove invalid date from _san
@@ -131,7 +131,7 @@
         if( !this.inArrayMode ){
           // save it to _san
           objectSetMethod(this._san,key, val)
-        }
+        } 
       }else{
         this.opt = true;
       }

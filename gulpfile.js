@@ -1,3 +1,6 @@
+// require('babel-core/register')
+require('babel/register')
+
 var gulp = require('gulp'),fs = require("fs");
 
 var rename = require("gulp-rename");
@@ -94,6 +97,8 @@ gulp.task('test',function(){
     gulp.src('./tests/**/*.spec.js', {read: false})
       .pipe(mocha({
       	reporter: 'spec',
+        // compilers: {js: babel },
+        // compilers: 'js:babel/register'
     }))
 })
 
@@ -102,6 +107,7 @@ gulp.task('test_handle_err',["es6"],function(){
    		gulp.src('./tests/**/*.spec.js', {read: false})
    		  .pipe(mocha({
    		  	reporter: 'spec',
+           // compilers: {js: babel },
    		  	// compilers: 'js:babel/register'
    		}))
    		.on( "error", handleError); // spec,dot, nyan,list,doc,min,Progress, 

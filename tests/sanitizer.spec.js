@@ -1,5 +1,5 @@
 var expect = require('chai').expect;
-var VC = require("../validate-chain.js");
+var VC = require("../src/validate-chain.js");
 
 var mock = {
 	name: " eisneim  ",
@@ -92,6 +92,7 @@ describe('sanitizers',function(){
 
 	it("should sanitize nested object, and array inside nested",function(){
 		var vc = new VC( mock );
+		vc.check('nested')
 		vc.check("nested.name").required().trim()
 		vc.check("nested.array").required().array(function(item,index){
 			item.trim();

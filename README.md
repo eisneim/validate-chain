@@ -52,6 +52,19 @@ validator.loginForm() => {
 }
 ```
 
+
+###安装
+```javascript
+npm install --save validate-chain
+
+// es5
+var VC = require("validate-chain")
+
+// es6
+import VC form "validate-chain"
+
+```
+
 ###浏览器中使用
 ```
 bower install --save validate-chain
@@ -67,17 +80,6 @@ vc.check("name").required("名字为必填项");
 
 ```
 
-###安装
-```javascript
-npm install --save validate-chain
-
-// es5
-var VC = require("validate-chain")
-
-// es6
-import VC form "validate-chain"
-
-```
 
 ###检查数组字段
 如果一个字段的值为数组，可以使用array(callback)来进行检查

@@ -12,6 +12,7 @@ exports.isEmail = isEmail;
 exports.isJSON = isJSON;
 exports.isIP = isIP;
 exports.isURL = isURL;
+exports.isFQDN = isFQDN;
 exports.isCreditCard = isCreditCard;
 var regx = {
   phone: /^(\+?0?86\-?)?1[345789]\d{9}$/,
@@ -33,6 +34,16 @@ var regx = {
 };
 
 exports.regx = regx;
+function merge(obj, defaults) {
+  obj = obj || {};
+  for (var key in defaults) {
+    if (typeof obj[key] === 'undefined') {
+      obj[key] = defaults[key];
+    }
+  }
+  return obj;
+}
+
 function toString(input) {
   if (typeof input === 'object' && input !== null && input.toString) {
     input = input.toString();
@@ -56,7 +67,7 @@ function isDate(str) {
   return !isNaN(Date.parse(str));
 }
 
-function isBefore() {
+function isBefore(str, date) {
   var comparison = toDate(date || new Date()),
       original = toDate(str);
   return !!(original && comparison && original < comparison);
@@ -97,8 +108,18 @@ function isJSON() {
 }
 
 function isIP(str) {
-  return regx.ipv4Maybe.test(str) || regx.regx.ipv6Block.test(str);
+  return regx.ipv4Maybe.test(str) || regx.ipv6Block.test(str);
 }
+
+var default_url_options = {
+  protocols: ['http', 'https', 'ftp'],
+  require_tld: true,
+  require_protocol: false,
+  require_valid_protocol: true,
+  allow_underscores: false,
+  allow_trailing_dot: false,
+  allow_protocol_relative_urls: false
+};
 
 function isURL(url, options) {
   if (!url || url.length >= 2083 || /\s/.test(url)) {
@@ -146,7 +167,7 @@ function isURL(url, options) {
       return false;
     }
   }
-  if (!isIP(host) && host !== 'localhost') {
+  if (!isIP(host) && !isFQDN(host, options) && host !== 'localhost') {
     return false;
   }
   if (options.host_whitelist && options.host_whitelist.indexOf(host) === -1) {
@@ -157,6 +178,50 @@ function isURL(url, options) {
   }
   return true;
 }
+
+var default_fqdn_options = {
+  require_tld: true,
+  allow_underscores: false,
+  allow_trailing_dot: false
+};
+
+function isFQDN(str, options) {
+  options = merge(options, default_fqdn_options);
+
+  /* Remove the optional trailing dot before checking validity */
+  if (options.allow_trailing_dot && str[str.length - 1] === '.') {
+    str = str.substring(0, str.length - 1);
+  }
+  var parts = str.split('.');
+  if (options.require_tld) {
+    var tld = parts.pop();
+    if (!parts.length || !/^([a-z\u00a1-\uffff]{2,}|xn[a-z0-9-]{2,})$/i.test(tld)) {
+      return false;
+    }
+  }
+  for (var part, i = 0; i < parts.length; i++) {
+    part = parts[i];
+    if (options.allow_underscores) {
+      if (part.indexOf('__') >= 0) {
+        return false;
+      }
+      part = part.replace(/_/g, '');
+    }
+    if (!/^[a-z\u00a1-\uffff0-9-]+$/i.test(part)) {
+      return false;
+    }
+    if (/[\uff01-\uff5e]/.test(part)) {
+      // disallow full-width chars
+      return false;
+    }
+    if (part[0] === '-' || part[part.length - 1] === '-' || part.indexOf('---') >= 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+;
 
 function isCreditCard(str) {
   var sanitized = str.replace(/[^0-9]+/g, '');
