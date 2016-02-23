@@ -197,7 +197,7 @@
       if( this.opt && !val ) return this;
       
       let type = typeof val;
-      if( (type === "string"||Array.isArray(val)) && (val.length > max || val.lenth< min)  ){
+      if( (type === "string"||Array.isArray(val)) && (val.length > max || val.length< min)  ){
         this.addError(tip || `${this.key}: 长度应该在${min}-${max}个字符之间`);
       }else if( type === "number" && (val > max || val< min) ){
          this.addError(tip || `${this.key}: 大小应该在${min}-${max}之间`)
