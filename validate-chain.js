@@ -55,6 +55,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     _createClass(Validator, [{
       key: 'addError',
       value: function addError(msg) {
+        // add array of error message
+        if (Array.isArray(msg)) {
+          this._errs = this._errs.concat(msg);
+          return;
+        }
 
         if (this.inArrayMode) {
           var _inArray = this.inArray;
@@ -209,7 +214,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         if (this.opt && !val) return this;
 
         var type = typeof val;
-        if ((type === "string" || Array.isArray(val)) && (val.length > max || val.lenth < min)) {
+        if ((type === "string" || Array.isArray(val)) && (val.length > max || val.length < min)) {
           this.addError(tip || this.key + ': 长度应该在' + min + '-' + max + '个字符之间');
         } else if (type === "number" && (val > max || val < min)) {
           this.addError(tip || this.key + ': 大小应该在' + min + '-' + max + '之间');
@@ -576,6 +581,84 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         return this;
       }
+
+      // -------------------------------- more features -----------------
+    }, {
+      key: 'compose',
+      value: function compose(field, fn) {
+        this.key = field;
+        var childVC = new Validator(this.currentVal, this.takeWhatWeHave);
+        // execute it
+        var parsed = fn(childVC);
+
+        var _ref = parsed || childVC;
+
+        var sanitized = _ref.sanitized;
+        var errors = _ref.errors;
+
+        this.setSanitizedVal(sanitized);
+        if (errors && errors.length > 0) {
+          var alias = this._alias[field] || field;
+          this.addError(errors.map(function (e) {
+            return alias + '.' + e;
+          }));
+        }
+
+        return this;
+      }
+    }, {
+      key: 'flatedArray',
+      value: function flatedArray(arg1, fn) {
+        var _this = this;
+
+        // flatedArray('fields',function(){})
+        if (typeof arg1 === 'string') {
+          this.key = arg1;
+          var targetObj = this.currentVal;
+
+          Object.keys(targetObj).forEach(function (key, index) {
+            var childVC = new Validator(targetObj[key], _this.takeWhatWeHave);
+            // execute it
+            var parsed = fn(childVC, targetObj[key]);
+
+            var _ref2 = parsed || childVC;
+
+            var sanitized = _ref2.sanitized;
+            var errors = _ref2.errors;
+
+            objectSetMethod(_this._san, arg1 + '.' + key, sanitized);
+
+            if (errors && errors.length > 0) {
+              var alias = (_this._alias[arg1] || arg1) + '.' + key;
+              _this.addError(errors.map(function (e) {
+                return alias + '.' + e;
+              }));
+            }
+          });
+        } else {
+          // flatedArray(function(){})
+          Object.keys(this.target).forEach(function (key, index) {
+            _this.key = key;
+            var childVC = new Validator(_this.currentVal, _this.takeWhatWeHave);
+            // execute it
+            var parsed = arg1(childVC, _this.currentVal);
+
+            var _ref3 = parsed || childVC;
+
+            var sanitized = _ref3.sanitized;
+            var errors = _ref3.errors;
+
+            _this.setSanitizedVal(sanitized);
+
+            if (errors && errors.length > 0) {
+              _this.addError(errors.map(function (e) {
+                return key + '.' + e;
+              }));
+            }
+          });
+        }
+        return this;
+      }
     }, {
       key: 'errors',
       get: function get() {
@@ -655,15 +738,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     if (!obj || !key) throw new Error("objectSetMethod 需要object和key参数");
     var keys = key.split(".");
     try {
-      keys.reduce(function (vv, field, index) {
-        keys[index + 1] !== undefined ? vv[field] : vv[field] = value;
+      keys.reduce(function (object, field, index) {
         if (keys[index + 1] !== undefined) {
-          // last key
-          if (!vv[field]) vv[field] = vv.regx.numeric.test(keys[index + 1]) ? [] : {};
-          return vv[field];
+          // not last key
+          if (!object[field]) object[field] = vv.regx.numeric.test(keys[index + 1]) ? [] : {};
+          return object[field];
         }
         // this is the last key;
-        return vv[field] = value;
+        object[field] = value;
+        return object;
       }, obj);
       return true;
     } catch (e) {

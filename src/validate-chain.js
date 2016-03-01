@@ -43,6 +43,11 @@
     }
 
     addError( msg ){    
+      // add array of error message
+      if(Array.isArray(msg)) {
+        this._errs = this._errs.concat(msg)
+        return
+      }
 
       if( this.inArrayMode ){
 
@@ -508,6 +513,59 @@
       return this;
     }
 
+    // -------------------------------- more features -----------------
+    compose(field, fn) {
+      this.key = field;
+      var childVC = new Validator(this.currentVal, this.takeWhatWeHave)
+      // execute it
+      var parsed = fn(childVC)
+      var {sanitized,errors} = parsed || childVC
+      this.setSanitizedVal(sanitized)
+      if(errors && errors.length>0) {
+        var alias = this._alias[field] || field
+        this.addError(errors.map(e => alias+'.'+e))
+      }
+
+      return this
+    }
+
+    flatedArray(arg1,fn) {
+      // flatedArray('fields',function(){})
+      if(typeof arg1 === 'string') {
+        this.key = arg1
+        var targetObj = this.currentVal
+
+        Object.keys(targetObj).forEach((key,index) => {
+          var childVC = new Validator(targetObj[key], this.takeWhatWeHave)
+          // execute it
+          var parsed = fn(childVC, targetObj[key])
+          var {sanitized,errors} = parsed || childVC
+          objectSetMethod(this._san, arg1 + '.'+key, sanitized)
+          
+          if(errors && errors.length>0) {
+            var alias = (this._alias[arg1] || arg1) + '.'+key
+            this.addError(errors.map(e => alias+'.'+e))
+          }
+        })
+
+      } else { // flatedArray(function(){})
+        Object.keys(this.target).forEach((key,index) => {
+          this.key = key
+          var childVC = new Validator(this.currentVal, this.takeWhatWeHave)
+          // execute it
+          var parsed = arg1(childVC, this.currentVal)
+          var {sanitized,errors} = parsed || childVC
+          this.setSanitizedVal(sanitized)
+          
+          if(errors && errors.length>0) {
+            this.addError(errors.map(e => key+'.'+e))
+          }
+        })
+      }
+      return this
+    }
+
+
 
   }// end of class
   
@@ -546,16 +604,16 @@
     if(!obj || !key ) throw new Error("objectSetMethod 需要object和key参数");
     var keys = key.split(".");
     try{
-      keys.reduce( (vv,field,index)=> {
-          keys[index+1]!==undefined ? vv[field] : vv[field]=value
-          if( keys[index+1]!==undefined ){ // last key
-            if( !vv[field] ) 
-              vv[field] = vv.regx.numeric.test(keys[index+1])? [] : {};
-            return vv[field]
-          }
-          // this is the last key;
-          return vv[field]=value
-        }, obj )
+      keys.reduce( (object,field,index)=> {
+        if( keys[index+1]!==undefined ){ // not last key
+          if( !object[field] ) 
+            object[field] = vv.regx.numeric.test(keys[index+1])? [] : {};
+          return object[field]
+        } 
+        // this is the last key;
+        object[field]=value
+        return object
+      }, obj )
       return true;
     }catch(e){
       return false;

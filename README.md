@@ -5,6 +5,11 @@ Validate-Chain
 ###Motivation 为啥要写这个工具？
 以NODE作为后端开发单页应用时，前后端对表单的验证和消毒的逻辑以及返回的提示信息其实是一样的，应该做到前后端共用验证逻辑。目前后端可以使用的koa-validate,express-validate等验证中间件不能在前端使用。验证器应该去检查多个字段并在最后返回一个提示信息的数组，和已经消毒后的数据；
 
+### TODO
+ - migrate 'a.b' style to compose style
+ - localization
+ - error message template
+
 ### 之前在angular项目中这样写过
 重复的if return, 以及大量的错误提示信息。。。。。
 ```javascript

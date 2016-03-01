@@ -33,6 +33,11 @@ var mock = {
 			},
 			value:24
 		}
+	},
+
+	sub: {
+		age: 10,
+		name: 'terry'
 	}
 }
 
@@ -127,7 +132,7 @@ describe('Validator-Chain checkers',function(){
 		vc.check("site").URL()
 		vc.check("siteInvalid").URL()
 		vc.check("phone").URL()
-		console.log(vc.errors)
+		// console.log(vc.errors)
 
 		expect( vc.errors ).to.have.length(3);
 
@@ -135,8 +140,6 @@ describe('Validator-Chain checkers',function(){
 		vc.check("base64").base64();
 		vc.check("ascii").ascii();
 		expect( vc.errors ).to.have.length(3);
-
-
 	})
 
 	it("can deal with Date",function(){
@@ -162,7 +165,7 @@ describe('Validator-Chain checkers',function(){
 		vc.check("alpha").alpha()
 		vc.check("alphanumeric").alphanumeric()
 
-		expect( vc.errors ).to.be.empty;
+		expect( vc.errors ).to.have.length(1);
 	})
 
 	it("should check nested object property",function(){
@@ -176,7 +179,7 @@ describe('Validator-Chain checkers',function(){
 		vc.check("nested.arrayObj").required().array(function(item,index){
 			item.check("user.age").required().min(18)
 		})
-		console.log(vc.errors)
+		// console.log(vc.errors)
 		expect( vc.errors ).to.have.length(2);
 
 		vc.check("nested.level1.value").$apply(function(value){
@@ -193,5 +196,96 @@ describe('Validator-Chain checkers',function(){
 		expect( vc.errors ).to.have.length(3);
 		expect( vc.sanitized ).have.property("nested");
 	})
+
+	describe('vc.compose', function() {
+		it('compose and check sub doc', function() {
+			var vc = new VC(mock)
+			vc.compose('sub', function(child) {
+				child.check('age').min(18)
+				child.check('name').min(2)
+			})
+			expect(vc.errors).to.have.length(1)
+			expect(vc.sanitized.sub.name).to.equal('terry')
+		})
+
+		it('goes deeper', function() {
+			var vc = new VC(mock)
+			vc.check('nested')
+			vc.compose('nested.level1', function(child) {
+				child.check('age').min(18)
+				child.check('level2.value').min(18)
+			})
+			// console.log(vc.errors)
+			// console.log(vc.sanitized)
+			expect(vc.errors).to.have.length(1)
+		})
+
+		it('use stand alone vc function', function() {
+			var childChecker = function(){
+				var vv = new VC(mock.sub)
+				vv.check('age').min(18)
+					.check('name').min(2)
+
+				return vv
+			}
+
+			var vc = new VC(mock)
+			vc.compose('sub', childChecker)
+			// console.log(vc.errors)
+			// console.log(vc.sanitized)
+			expect(vc.errors).to.have.length(1)
+			expect(vc.sanitized.sub.name).to.equal('terry')
+		})
+	}) // end of comose
+
+	describe('vc.flatedArray', function() {
+		var flated = {
+			'id1':{name:'eisneim',age:17},
+			'id2':{name:'terry',age:22},
+		}
+		var data = {
+			flated: flated,
+		}
+
+		it('check flatedArray for each child', function() {
+			var vc = new VC(flated)
+			vc.flatedArray(function(each) {
+				each.check('name').required()
+					.check('age').min(18)
+			})
+			// console.log(vc.errors)
+			// console.log(vc.sanitized)
+			expect(vc.errors).to.have.length(1)
+			expect(vc.sanitized.id2.age).to.equal(22)
+		})
+
+		it('deal with flatedArray as a child', function() {
+			var vc = new VC(data)
+			vc.flatedArray('flated', function(each) {
+				each.check('name').required()
+					.check('age').min(18)
+			})
+
+			// console.log(vc.errors)
+			// console.log(vc.sanitized)
+			expect(vc.errors).to.have.length(1)
+			expect(vc.sanitized.flated.id2.age).to.equal(22)
+		})
+
+		it('accept stand alone function', function() {
+			var childChecker = function(checker, eachData){
+				var vv = new VC(eachData)
+				return vv.check('name').required()
+					.check('age').min(18)
+			}
+			var vc = new VC(data)
+			vc.flatedArray('flated', childChecker)
+
+			console.log(vc.errors)
+			console.log(vc.sanitized)
+			expect(vc.errors).to.have.length(1)
+			expect(vc.sanitized.flated.id2.age).to.equal(22)
+		})
+	}) // end of flatedArray
 
 });
