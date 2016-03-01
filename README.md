@@ -10,25 +10,6 @@ Validate-Chain
  - localization
  - error message template
 
-### 之前在angular项目中这样写过
-重复的if return, 以及大量的错误提示信息。。。。。
-```javascript
-validator.loginForm = ({credential,password,email}) => {
-	if( !credential ) return err("手机号或者Email地址，你忘了吧");
-	if( !password ) return err("你是不是忘了填写密码了");
-	if( /emailRegx/.test(email)) return err("这个不是Email地址。。。")
- 	....
- 	.... blah blah blah
-
-	var san = {credential,password};
-	return { san }
-}
-
-function err( msg ){
-	return { verr:msg }
-}
-```
-
 ###使用 Validate-Chain
 ```javascript
 import VC from "validate-chain";
@@ -56,35 +37,84 @@ validator.loginForm() => {
 	// vc.errorFields: [ "desc", "age", ... ]
 }
 ```
-
-
-###安装
+### 复合Compose，用于处理子对象，合并child checker function
 ```javascript
-npm install --save validate-chain
+const mock = {
+	sub: {
+		age: 10,
+		name: 'terry'
+	}
+}
+it('compose and check sub doc', function() {
+	var vc = new VC(mock)
+	vc.compose('sub', function(child) {
+		child.check('age').min(18)
+		child.check('name').min(2)
+	})
+	expect(vc.errors).to.have.length(1)
+	expect(vc.sanitized.sub.name).to.equal('terry')
+})
 
-// es5
-var VC = require("validate-chain")
+it('use stand alone vc function', function() {
+	var childChecker = function(){
+		var vv = new VC(mock.sub)
+		vv.check('age').min(18)
+			.check('name').min(2)
+		return vv
+	}
 
-// es6
-import VC form "validate-chain"
-
+	var vc = new VC(mock)
+	vc.compose('sub', childChecker)
+	expect(vc.errors).to.have.length(1)
+	expect(vc.sanitized.sub.name).to.equal('terry')
+})
 ```
 
-###浏览器中使用
-```
-bower install --save validate-chain
-```
-```html
-<script src="路径/validate-chain-browser.js"></script>
-```
+### flatedArray被转换成对象的数组
 ```javascript
-// VC 为全局变量
-var vc = new VC( objectData )
-vc.check("name").required("名字为必填项");
-//console.log( vc.errors )
+describe('vc.flatedArray', function() {
+	var flated = {
+		'id1':{name:'eisneim',age:17},
+		'id2':{name:'terry',age:22},
+	}
+	var data = {
+		flated: flated,
+	}
+	
+	it('check flatedArray for each child', function() {
+		var vc = new VC(flated)
+		vc.flatedArray(function(each) {
+			each.check('name').required()
+				.check('age').min(18)
+		})
+		expect(vc.errors).to.have.length(1)
+		expect(vc.sanitized.id2.age).to.equal(22)
+	})
 
+	it('deal with flatedArray as a child', function() {
+		var vc = new VC(data)
+		vc.flatedArray('flated', function(each) {
+			each.check('name').required()
+				.check('age').min(18)
+		})
+		expect(vc.errors).to.have.length(1)
+		expect(vc.sanitized.flated.id2.age).to.equal(22)
+	})
+
+	it('accept stand alone function', function() {
+		var childChecker = function(checker, eachData){
+			var vv = new VC(eachData)
+			return vv
+				.check('name').required()
+				.check('age').min(18)
+		}
+		var vc = new VC(data)
+		vc.flatedArray('flated', childChecker)
+		expect(vc.errors).to.have.length(1)
+		expect(vc.sanitized.flated.id2.age).to.equal(22)
+	})
+})
 ```
-
 
 ###检查数组字段
 如果一个字段的值为数组，可以使用array(callback)来进行检查
@@ -118,6 +148,33 @@ expect(vc.errors).to.have.length(5); // -> pass
 ] **/
 ```
 
+###安装
+```javascript
+npm install --save validate-chain
+
+// es5
+var VC = require("validate-chain")
+
+// es6
+import VC form "validate-chain"
+
+```
+
+###浏览器中使用
+```
+bower install --save validate-chain
+```
+```html
+<script src="路径/validate-chain-browser.js"></script>
+```
+```javascript
+// VC 为全局变量
+var vc = new VC( objectData )
+vc.check("name").required("名字为必填项");
+//console.log( vc.errors )
+
+```
+
 ###API
  - **check(key)** 以它作为开始，如果对象数据有多层，可使用"a.b.c"来检查内部元素
  - **errors** 检查完后，读取这个属性即可获取所有的错误提示
@@ -148,6 +205,8 @@ expect(vc.errors).to.have.length(5); // -> pass
  - **objectId([tip])** 是否为Mongodb ObjectID
  - **base64([tip])** 是否为base64格式字符串编码
  - **creditCard([tip])** 是否为信用卡
+ - **compose** 检查子对象 vc.compose('fieldName',fn)，可以将另一个 checkFunction作为参数
+ - **flatedArray** 检查被转换成对象的数组
 
 
 ### sanitizers 消毒器
