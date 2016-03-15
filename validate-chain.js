@@ -178,11 +178,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         return this;
       }
+    }, {
+      key: 'defaultValueOrError',
+      value: function defaultValueOrError(defaultValue, error) {
+        if (defaultValue !== undefined) {
+          this.setSanitizedVal(defaultValue);
+        } else {
+          this.addError(error);
+        }
+      }
 
       // ----------------- must in the beginning of the chain --------
     }, {
       key: 'required',
-      value: function required(tip) {
+      value: function required(tip, defaultValue) {
         // skip require if only take what is provided for sanitize;
         if (this.takeWhatWeHave) {
           this.opt = true;
@@ -190,9 +199,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }
         if (!this.next) return this;
         this.opt = false;
-        if (this.currentVal === undefined) {
-          this.addError(tip || this.key + ': 为必填字段');
-          this.next = false;
+        if (this.currentVal === undefined || this.currentVal === '') {
+          this.defaultValueOrError(defaultValue, tip || this.key + ': 为必填字段');
+          if (defaultValue === undefined) {
+            this.next = false;
+          }
         }
 
         return this;
@@ -208,52 +219,52 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       // ----------------- property validate methods ------------------
     }, {
       key: 'between',
-      value: function between(min, max, tip) {
+      value: function between(min, max, tip, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
 
         var type = typeof val;
         if ((type === "string" || Array.isArray(val)) && (val.length > max || val.length < min)) {
-          this.addError(tip || this.key + ': 长度应该在' + min + '-' + max + '个字符之间');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': 长度应该在' + min + '-' + max + '个字符之间');
         } else if (type === "number" && (val > max || val < min)) {
-          this.addError(tip || this.key + ': 大小应该在' + min + '-' + max + '之间');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': 大小应该在' + min + '-' + max + '之间');
         }
         return this;
       }
     }, {
       key: 'max',
-      value: function max(num, tip) {
+      value: function max(num, tip, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
         var type = typeof val;
         if ((type === "string" || Array.isArray(val)) && val.length > num) {
-          this.addError(tip || this.key + ': 最多' + num + '个字符');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': 最多' + num + '个字符');
         } else if (type === "number" && val > num) {
-          this.addError(tip || this.key + ': 最大值为' + num);
+          this.defaultValueOrError(defaultValue, tip || this.key + ': 最大值为' + num);
         }
         return this;
       }
     }, {
       key: 'min',
-      value: function min(num, tip) {
+      value: function min(num, tip, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
 
         var type = typeof val;
         if ((type === "string" || Array.isArray(val)) && val.length < num) {
-          this.addError(tip || this.key + ': 最少' + num + '个字符');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': 最少' + num + '个字符');
         } else if (type === "number" && val < num) {
-          this.addError(tip || this.key + ': 最小值为' + num);
+          this.defaultValueOrError(defaultValue, tip || this.key + ': 最小值为' + num);
         }
 
         return this;
       }
     }, {
       key: 'regx',
-      value: function regx(pattern, tip, modifiers) {
+      value: function regx(pattern, tip, modifiers, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
@@ -261,7 +272,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
           pattern = new RegExp(pattern, modifiers);
         }
         if (!pattern.test(val)) {
-          this.addError(tip || this.key + ': 不合格' + pattern.toString() + '的格式');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': 不合格' + pattern.toString() + '的格式');
         }
 
         return this;
@@ -275,162 +286,162 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
        */
     }, {
       key: '$apply',
-      value: function $apply(checker, tip) {
+      value: function $apply(checker, tip, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
 
         if (typeof checker !== "function") throw new Error("$apply第一个参数必须为function");
         if (!checker(val)) {
-          this.addError(tip || this.key + ': ' + val + '不是正确的格式');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': ' + val + '不是正确的格式');
         }
 
         return this;
       }
     }, {
       key: 'date',
-      value: function date(tip) {
+      value: function date(tip, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
         if (!vv.isDate(val)) {
-          this.addError(tip || this.key + ': ' + val + '不符合日期格式');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': ' + val + '不符合日期格式');
         }
 
         return this;
       }
     }, {
       key: 'before',
-      value: function before(time, tip) {
+      value: function before(time, tip, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
         if (!vv.isBefore(val, time)) {
-          this.addError(tip || this.key + ': ' + val + '需要在' + time + '之前');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': ' + val + '需要在' + time + '之前');
         }
 
         return this;
       }
     }, {
       key: 'after',
-      value: function after(time, tip) {
+      value: function after(time, tip, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
 
         if (!vv.isAfter(val, time)) {
-          this.addError(tip || this.key + ': ' + val + '需要在' + time + '之后');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': ' + val + '需要在' + time + '之后');
         }
         return this;
       }
     }, {
       key: 'in',
-      value: function _in(values, tip) {
+      value: function _in(values, tip, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
 
         if (!vv.isIn(val, values)) {
-          this.addError(tip || this.key + ': ' + val + '需要在[' + values.toString() + ']之中');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': ' + val + '需要在[' + values.toString() + ']之中');
         }
         return this;
       }
     }, {
       key: 'email',
-      value: function email(tip, options) {
+      value: function email(tip, options, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
 
         if (!vv.isEmail(val, options)) {
-          this.addError(tip || this.key + ': ' + val + '不是常规的email');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': ' + val + '不是常规的email');
         }
 
         return this;
       }
     }, {
       key: 'JSON',
-      value: function JSON(tip) {
+      value: function JSON(tip, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
 
         if (!vv.isJSON(val)) {
-          this.addError(tip || this.key + ': ' + val + '不是JSON格式字符串');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': ' + val + '不是JSON格式字符串');
         }
         return this;
       }
     }, {
       key: 'URL',
-      value: function URL(tip, options) {
+      value: function URL(tip, options, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
 
         if (!vv.isURL(val, options)) {
-          this.addError(tip || this.key + ': ' + val + '不符合URL的格式');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': ' + val + '不符合URL的格式');
         }
         return this;
       }
     }, {
       key: 'phone',
-      value: function phone(tip) {
-        return this.regx(vv.regx.phone, tip || this.key + ': ' + this.currentVal + '不是常规的手机号码');
+      value: function phone(tip, defaultValue) {
+        return this.regx(vv.regx.phone, tip || this.key + ': ' + this.currentVal + '不是常规的手机号码', null, defaultValue);
       }
     }, {
       key: 'numeric',
-      value: function numeric(tip) {
-        return this.regx(vv.regx.numeric, tip || this.key + ': ' + this.currentVal + '必须为纯数字');
+      value: function numeric(tip, defaultValue) {
+        return this.regx(vv.regx.numeric, tip || this.key + ': ' + this.currentVal + '必须为纯数字', null, defaultValue);
       }
     }, {
       key: 'decimal',
-      value: function decimal(tip) {
-        return this.regx(vv.regx.decimal, tip || this.key + ': ' + this.currentVal + '必须为小数格式数字');
+      value: function decimal(tip, defaultValue) {
+        return this.regx(vv.regx.decimal, tip || this.key + ': ' + this.currentVal + '必须为小数格式数字', null, defaultValue);
       }
     }, {
       key: 'float',
-      value: function float(tip) {
-        return this.regx(vv.regx.float, tip || this.key + ': ' + this.currentVal + '必须为float格式数字');
+      value: function float(tip, defaultValue) {
+        return this.regx(vv.regx.float, tip || this.key + ': ' + this.currentVal + '必须为float格式数字', null, defaultValue);
       }
     }, {
       key: 'hex',
-      value: function hex(tip) {
-        return this.regx(vv.regx.hexadecimal, tip || this.key + ': ' + this.currentVal + '必须为16进制数字');
+      value: function hex(tip, defaultValue) {
+        return this.regx(vv.regx.hexadecimal, tip || this.key + ': ' + this.currentVal + '必须为16进制数字', null, defaultValue);
       }
     }, {
       key: 'alpha',
-      value: function alpha(tip) {
-        return this.regx(vv.regx.alpha, tip || this.key + ': ' + this.currentVal + '必须为纯字母');
+      value: function alpha(tip, defaultValue) {
+        return this.regx(vv.regx.alpha, tip || this.key + ': ' + this.currentVal + '必须为纯字母', null, defaultValue);
       }
     }, {
       key: 'alphanumeric',
-      value: function alphanumeric(tip) {
-        return this.regx(vv.regx.alphanumeric, tip || this.key + ': ' + this.currentVal + '必须为纯字母和数字的组合');
+      value: function alphanumeric(tip, defaultValue) {
+        return this.regx(vv.regx.alphanumeric, tip || this.key + ': ' + this.currentVal + '必须为纯字母和数字的组合', null, defaultValue);
       }
     }, {
       key: 'ascii',
-      value: function ascii(tip) {
-        return this.regx(vv.regx.ascii, tip || this.key + ': ' + this.currentVal + '必须为符合规范的ASCII码');
+      value: function ascii(tip, defaultValue) {
+        return this.regx(vv.regx.ascii, tip || this.key + ': ' + this.currentVal + '必须为符合规范的ASCII码', null, defaultValue);
       }
     }, {
       key: 'objectId',
-      value: function objectId(tip) {
-        return this.regx(vv.regx.objectId, tip || this.currentVal + '不是常规的ObjectId');
+      value: function objectId(tip, defaultValue) {
+        return this.regx(vv.regx.objectId, tip || this.currentVal + '不是常规的ObjectId', null, defaultValue);
       }
     }, {
       key: 'base64',
-      value: function base64(tip) {
-        return this.regx(vv.regx.base64, tip || this.key + ': ' + this.currentVal + '必须为符合规范的Base64编码');
+      value: function base64(tip, defaultValue) {
+        return this.regx(vv.regx.base64, tip || this.key + ': ' + this.currentVal + '必须为符合规范的Base64编码', null, defaultValue);
       }
     }, {
       key: 'creditCard',
-      value: function creditCard(tip) {
+      value: function creditCard(tip, defaultValue) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
 
         if (!vv.isCreditCard(val)) {
-          this.addError(tip || this.key + ': ' + val + '不符合信用卡的格式');
+          this.defaultValueOrError(defaultValue, tip || this.key + ': ' + val + '不符合信用卡的格式');
         }
         return this;
       }
@@ -676,8 +687,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         if (this.inArrayMode) {
           var array = objectGetMethod(this.target, this.inArray.arrayKey);
           // nested first:  a.b.c[array]
-          // if( this.inArray.arrayKey.indexOf(".")> -1 ){ 
-          // if( this.key.indexOf(".")> -1 ){ // [{a:{b:v}}]
+          // if(this.inArray.arrayKey.indexOf(".")> -1){ 
+          // if(this.key.indexOf(".")> -1){ // [{a:{b:v}}]
 
           //only in arrayMode
           var item = array[this.inArray.index];
