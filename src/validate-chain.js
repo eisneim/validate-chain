@@ -183,7 +183,7 @@
       }
       if( !this.next ) return this;
       this.opt = false;
-      if( this.currentVal === undefined ){
+      if( this.currentVal === undefined ||this.currentVal === ''){
         this.addError( tip || `${this.key}: 为必填字段` )
         this.next = false;
       }
