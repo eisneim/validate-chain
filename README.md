@@ -181,7 +181,7 @@ vc.check("name").required("名字为必填项");
  - **errorFields** 包含所有出错的字段的一个数组：["age","user.username","array.0.name"]
  - **sanitized** 检查完后读取这个属性即可获得消毒后的属性
  - **alias(name)** 如果设置了别名，错误信息将以这个别名开始
- - **required([tip])** 必填，大部分情况下需要在链中指明，
+ - **required([tip],[devaultValue])** 必填，大部分情况下需要在链中指明，可以指定devaultValue
  - **optional()** 可选，大部分情况下需要在链中指明，
  - **between(min,max,[tip])** 如果value是字符串则比较长度，数字则比较大小
  - **max(number,[tip])** 如果value是字符串则比较长度，数字则比较大小
