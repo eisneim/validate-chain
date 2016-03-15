@@ -54,6 +54,10 @@ describe('Validator-Chain checkers',function(){
 
 		vc.check("null").required();
 		expect( vc.errors ).to.have.length(2);
+		// cehck for default value
+		vc.check('notExist').required(null,'defaultValue')
+		expect(vc.sanitized.notExist).to.equal('defaultValue')
+		expect( vc.errors ).to.have.length(2);
 	});
 
 	it("should change Error message if .aliase() presents",function(){
@@ -117,6 +121,12 @@ describe('Validator-Chain checkers',function(){
 			return val === "eisneim";
 		},"name should equals to eisneim, just for test")
 		expect( vc.errors ).to.have.length(1)
+		// check for default value:
+		vc.check('age').$apply(function(val) {
+			return val == 3
+		}, null, 14)
+		expect( vc.errors ).to.have.length(1)
+		expect( vc.sanitized.age ).to.equal(14)
 	})
 
 	it("can deal with common string format",function(){

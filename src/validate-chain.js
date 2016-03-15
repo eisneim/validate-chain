@@ -174,6 +174,14 @@
       return this;
     }
 
+    defaultValueOrError(defaultValue,error) {
+      if(defaultValue !== undefined) {
+        this.setSanitizedVal(defaultValue)
+      } else {
+        this.addError(error)
+      }
+    }
+
     // ----------------- must in the beginning of the chain --------
     required(tip,defaultValue){
       // skip require if only take what is provided for sanitize;
@@ -184,11 +192,8 @@
       if(!this.next) return this;
       this.opt = false;
       if(this.currentVal === undefined ||this.currentVal === ''){
-        // if defaultValue is provided, will not emit error
-        if(defaultValue !== undefined) {
-          this.setSanitizedVal(defaultValue)
-        } else {
-          this.addError(tip || `${this.key}: 为必填字段`)
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: 为必填字段`)
+        if(defaultValue === undefined) {
           this.next = false;
         }
       }
@@ -201,46 +206,46 @@
       return this;
     }
     // ----------------- property validate methods ------------------
-    between(min,max,tip){
+    between(min,max,tip,defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
       
       let type = typeof val;
       if((type === "string"||Array.isArray(val)) && (val.length > max || val.length< min) ){
-        this.addError(tip || `${this.key}: 长度应该在${min}-${max}个字符之间`);
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: 长度应该在${min}-${max}个字符之间`);
       }else if(type === "number" && (val > max || val< min)){
-         this.addError(tip || `${this.key}: 大小应该在${min}-${max}之间`)
+         this.defaultValueOrError(defaultValue, tip || `${this.key}: 大小应该在${min}-${max}之间`)
       }
       return this;
     }
-    max(num,tip){
+    max(num,tip, defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
       let type = typeof val;
       if((type === "string"||Array.isArray(val)) && val.length > num){
-        this.addError(tip || `${this.key}: 最多${num}个字符`); 
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: 最多${num}个字符`); 
       }else if(type === "number" && val > num){
-        this.addError(tip || `${this.key}: 最大值为${num}`)
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: 最大值为${num}`)
       }
       return this;
     }
-    min(num,tip){
+    min(num,tip, defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
 
       let type = typeof val;
       if((type === "string"||Array.isArray(val)) && val.length < num){
-         this.addError(tip || `${this.key}: 最少${num}个字符`)
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: 最少${num}个字符`)
       }else if(type === "number" && val < num){
-         this.addError(tip || `${this.key}: 最小值为${num}`)
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: 最小值为${num}`)
       }
 
       return this;
     }
-    regx(pattern, tip,modifiers){
+    regx(pattern, tip,modifiers,defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
@@ -248,7 +253,7 @@
           pattern = new RegExp(pattern, modifiers);
       }
       if(!pattern.test(val)){
-        this.addError(tip || `${this.key}: 不合格${pattern.toString()}的格式`)  
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: 不合格${pattern.toString()}的格式`)  
       }
 
       return this;
@@ -259,127 +264,127 @@
      * @param  {[string]} tip     [description]
      * @return {[object]}         [description]
      */
-    $apply(checker,tip){
+    $apply(checker,tip,defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
 
       if(typeof checker !== "function") throw new Error("$apply第一个参数必须为function")
       if(!checker(val)){
-        this.addError(tip || `${this.key}: ${val}不是正确的格式`);
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不是正确的格式`);
       }
 
       return this;
     }
     
-    date(tip){
+    date(tip,defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
       if(!vv.isDate(val)){
-        this.addError(tip || `${this.key}: ${val}不符合日期格式`)  
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不符合日期格式`)  
       }
 
       return this;
     }
-    before(time, tip){
+    before(time, tip, defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
       if(!vv.isBefore(val, time)){
-        this.addError(tip || `${this.key}: ${val}需要在${time}之前`) 
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}需要在${time}之前`) 
       }
 
       return this;
     }
-    after(time, tip){
+    after(time, tip, defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
 
       if(!vv.isAfter(val ,time )){
-        this.addError(tip || `${this.key}: ${val}需要在${time}之后`) 
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}需要在${time}之后`) 
       }
       return this;
     }
-    in(values,tip){
+    in(values,tip,defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
 
       if(!vv.isIn(val, values)){
-        this.addError(tip || `${this.key}: ${val}需要在[${values.toString()}]之中`)  
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}需要在[${values.toString()}]之中`)  
       }
       return this;
     }
-    email(tip, options){
+    email(tip, options,defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
 
       if(!vv.isEmail(val, options)){
-        this.addError(tip || `${this.key}: ${val}不是常规的email`) 
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不是常规的email`) 
       }
 
       return this;
     }
-    JSON(tip){
+    JSON(tip, defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
 
       if(!vv.isJSON(val)){
-        this.addError(tip || `${this.key}: ${val}不是JSON格式字符串`)  
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不是JSON格式字符串`)  
       }
       return this;
     }
-    URL(tip,options){
+    URL(tip,options, defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
 
       if(!vv.isURL(val,options)){
-        this.addError(tip || `${this.key}: ${val}不符合URL的格式`)  
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不符合URL的格式`)  
       }
       return this;
     }
-    phone(tip){
-      return this.regx(vv.regx.phone , tip || `${this.key}: ${this.currentVal}不是常规的手机号码`);
+    phone(tip, defaultValue){
+      return this.regx(vv.regx.phone , tip || `${this.key}: ${this.currentVal}不是常规的手机号码`, null, defaultValue);
     }
-    numeric(tip){
-      return this.regx(vv.regx.numeric, tip || `${this.key}: ${this.currentVal}必须为纯数字`);
+    numeric(tip,defaultValue){
+      return this.regx(vv.regx.numeric, tip || `${this.key}: ${this.currentVal}必须为纯数字`, null, defaultValue);
     }
-    decimal(tip){
-      return this.regx(vv.regx.decimal, tip || `${this.key}: ${this.currentVal}必须为小数格式数字`); 
+    decimal(tip,defaultValue){
+      return this.regx(vv.regx.decimal, tip || `${this.key}: ${this.currentVal}必须为小数格式数字`, null, defaultValue); 
     }
-    float(tip){
-      return this.regx(vv.regx.float, tip || `${this.key}: ${this.currentVal}必须为float格式数字`);  
+    float(tip,defaultValue){
+      return this.regx(vv.regx.float, tip || `${this.key}: ${this.currentVal}必须为float格式数字`, null, defaultValue);  
     }
-    hex(tip){
-      return this.regx(vv.regx.hexadecimal, tip || `${this.key}: ${this.currentVal}必须为16进制数字`);
+    hex(tip,defaultValue){
+      return this.regx(vv.regx.hexadecimal, tip || `${this.key}: ${this.currentVal}必须为16进制数字`, null, defaultValue);
     }
-    alpha(tip){
-      return this.regx(vv.regx.alpha, tip || `${this.key}: ${this.currentVal}必须为纯字母`);
+    alpha(tip,defaultValue){
+      return this.regx(vv.regx.alpha, tip || `${this.key}: ${this.currentVal}必须为纯字母`, null, defaultValue);
     }
-    alphanumeric(tip){
-      return this.regx(vv.regx.alphanumeric, tip || `${this.key}: ${this.currentVal}必须为纯字母和数字的组合`);
+    alphanumeric(tip,defaultValue){
+      return this.regx(vv.regx.alphanumeric, tip || `${this.key}: ${this.currentVal}必须为纯字母和数字的组合`, null, defaultValue);
     }
-    ascii(tip){
-      return this.regx(vv.regx.ascii, tip || `${this.key}: ${this.currentVal}必须为符合规范的ASCII码`);
+    ascii(tip,defaultValue){
+      return this.regx(vv.regx.ascii, tip || `${this.key}: ${this.currentVal}必须为符合规范的ASCII码`, null, defaultValue);
     }
-    objectId(tip){
-      return this.regx(vv.regx.objectId , tip || `${this.currentVal}不是常规的ObjectId`);
+    objectId(tip,defaultValue){
+      return this.regx(vv.regx.objectId , tip || `${this.currentVal}不是常规的ObjectId`, null, defaultValue);
     }
-    base64(tip){
-      return this.regx(vv.regx.base64, tip || `${this.key}: ${this.currentVal}必须为符合规范的Base64编码`);
+    base64(tip,defaultValue){
+      return this.regx(vv.regx.base64, tip || `${this.key}: ${this.currentVal}必须为符合规范的Base64编码`, null, defaultValue);
     }
-    creditCard(tip){
+    creditCard(tip,defaultValue){
       if(!this.next) return this;
       let val = this.currentVal;
       if(this.opt && !val) return this;
 
       if(!vv.isCreditCard(val)){
-        this.addError(tip || `${this.key}: ${val}不符合信用卡的格式`)  
+        this.defaultValueOrError(defaultValue,tip || `${this.key}: ${val}不符合信用卡的格式`)  
       }
       return this;
     }
