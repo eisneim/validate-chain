@@ -181,30 +181,30 @@ vc.check("name").required("名字为必填项");
  - **errorFields** 包含所有出错的字段的一个数组：["age","user.username","array.0.name"]
  - **sanitized** 检查完后读取这个属性即可获得消毒后的属性
  - **alias(name)** 如果设置了别名，错误信息将以这个别名开始
- - **required([tip])** 必填，大部分情况下需要在链中指明，
+ - **required([tip],[devaultValue])** 必填，大部分情况下需要在链中指明，可以指定devaultValue
  - **optional()** 可选，大部分情况下需要在链中指明，
- - **between(min,max,[tip])** 如果value是字符串则比较长度，数字则比较大小
- - **max(number,[tip])** 如果value是字符串则比较长度，数字则比较大小
- - **min(number,[tip])** 如果value是字符串则比较长度，数字则比较大小
- - **regx( /regx/,[tip] )** 传入正则表达式对象，或者字符串的正则：\w.?end$不加首尾的/
- - **array([callback],[tip])** 检查数组
- - **$apply(callback,[tip])** 自定义逻辑function(value){return true}
- - **date(dateString,[tip])** 是否为时间格式
- - **before(dateString,[tip])** 时间在dateString之前
- - **after(dateString,[tip])** 时间在dateString之后
- - **in(Array,[tip])** 在一个数组值之一
- - **email([tip],[options])** options: allow_display_name:false 是否匹配 “姓名 <email-地址>”; allow_utf8_local_part:true 是否限定只能使用英文字母和数字； 
- - **JSON([tip])** 是否是格式没有错误的JSON
- - **URL([tip],[options])** 检查是否是正常的URL，options:  protocols: ['http','https','ftp']指定可以用的协议， require_protocol:false 是否可以不用指定协议
- - **phone([tip])** 检查手机号
- - **numeric([tip])** 检查是否为数字
- - **float([tip])** 是否为浮点数
- - **alpha([tip])** 是否为纯字母
- - **alphanumeric([tip])** 是否为字母+数字
- - **ascii([tip])** 是否是ascii 码
- - **objectId([tip])** 是否为Mongodb ObjectID
- - **base64([tip])** 是否为base64格式字符串编码
- - **creditCard([tip])** 是否为信用卡
+ - **between(min,max,[tip],[devaultValue])** 如果value是字符串则比较长度，数字则比较大小
+ - **max(number,[tip],[devaultValue])** 如果value是字符串则比较长度，数字则比较大小
+ - **min(number,[tip],[devaultValue])** 如果value是字符串则比较长度，数字则比较大小
+ - **regx( /regx/,[tip],[devaultValue])** 传入正则表达式对象，或者字符串的正则：\w.?end$不加首尾的/
+ - **array([callback],[tip],[devaultValue])** 检查数组
+ - **$apply(callback,[tip],[devaultValue])** 自定义逻辑function(value){return true}
+ - **date(dateString,[tip],[devaultValue])** 是否为时间格式
+ - **before(dateString,[tip],[devaultValue])** 时间在dateString之前
+ - **after(dateString,[tip],[devaultValue])** 时间在dateString之后
+ - **in(Array,[tip],[devaultValue])** 在一个数组值之一
+ - **email([tip],[options],[devaultValue])** options: allow_display_name:false 是否匹配 “姓名 <email-地址>”; allow_utf8_local_part:true 是否限定只能使用英文字母和数字； 
+ - **JSON([tip],[devaultValue])** 是否是格式没有错误的JSON
+ - **URL([tip],[options],[devaultValue])** 检查是否是正常的URL，options:  protocols: ['http','https','ftp']指定可以用的协议， require_protocol:false 是否可以不用指定协议
+ - **phone([tip],[devaultValue])** 检查手机号
+ - **numeric([tip],[devaultValue])** 检查是否为数字
+ - **float([tip],[devaultValue])** 是否为浮点数
+ - **alpha([tip],[devaultValue])** 是否为纯字母
+ - **alphanumeric([tip],[devaultValue])** 是否为字母+数字
+ - **ascii([tip],[devaultValue])** 是否是ascii 码
+ - **objectId([tip],[devaultValue])** 是否为Mongodb ObjectID
+ - **base64([tip],[devaultValue])** 是否为base64格式字符串编码
+ - **creditCard([tip],[devaultValue])** 是否为信用卡
  - **compose** 检查子对象 vc.compose('fieldName',fn)，可以将另一个 checkFunction作为参数
  - **flatedArray** 检查被转换成对象的数组
 
