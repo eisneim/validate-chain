@@ -5,7 +5,7 @@ export const regx = {
   objectId: /^[0-9a-fA-F]{24}$/,
   alpha: /^[A-Z]+$/i,
   alphanumeric: /^[0-9A-Z]+$/i,
-  numeric: /^[-+]?[0-9]+$/,
+  numeric: /^[-+]?[0-9\.]+$/,
   int: /^(?:[-+]?(?:0|[1-9][0-9]*))$/,
   float: /^(?:[-+]?(?:[0-9]+))?(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/,
   hexadecimal: /^[0-9A-F]+$/i,

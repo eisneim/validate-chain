@@ -1,4 +1,4 @@
-// TODO: 
+// TODO:
 // 1. check('nested.item') if didn't check('nested') first, will case sanitized.nested === undefined
 // 2.options to config error format;
 
@@ -15,93 +15,93 @@
   var vv = require('./validator.js')
 
   class Validator{
-    constructor(target, takeWhatWeHave){
+    constructor(target, takeWhatWeHave) {
       this.key = null; // temporarily store field name
       this._errs = [];
       this.errorFields = [];
       this._san = {}; // sanitized object
       this._alias = {}; // key: 中文名
-      this.opt = takeWhatWeHave? true: false;
+      this.opt = takeWhatWeHave? true: false
       this.target = target;
       // modes:
       this.takeWhatWeHave = takeWhatWeHave;
-      this.inArrayMode = false;
+      this.inArrayMode = false
       this.inArray = {
         index:0,
         arrayKey: null,
       }
-      // ------ 
+      // ------
       this.getter = objectGetMethod;
       this.setter = objectSetMethod;
     }
-    get errors(){
+    get errors() {
       return this._errs[0]?this._errs : null;
     }
-    
-    get sanitized(){
+
+    get sanitized() {
       return Object.keys(this._san).length>0?this._san : null;
     }
 
-    addError(msg){    
+    addError(msg) {
       // add array of error message
-      if(Array.isArray(msg)) {
+      if (Array.isArray(msg)) {
         this._errs = this._errs.concat(msg)
         return
       }
 
-      if(this.inArrayMode){
+      if (this.inArrayMode) {
 
-        let {index,arrayKey} = this.inArray;
+        let {index, arrayKey} = this.inArray;
         var arrayAlias = this._alias[arrayKey];
         var item = objectGetMethod(this.target, arrayKey)[index];
 
         var alias = this._alias[ arrayKey+"."+index+"."+this.key ]
         // pureArray: [1,2,"ss"]
         var isPureArray = item && !objectGetMethod(item,this.key);
-        if(isPureArray){
+        if (isPureArray) {
           alias = (arrayAlias||arrayKey)+
           "."+index;
-        }else{
+        } else {
           alias = (arrayAlias||arrayKey)+"."+index+"."+
           (alias||this.key)
         }
         this.errorFields.push(arrayKey+"."+index+(isPureArray? "":"."+this.key))
         // remove invalid data from _san
-        if(objectGetMethod(this._san,arrayKey)[index]){
+        if (objectGetMethod(this._san,arrayKey)[index]) {
           objectSetMethod(
-            this._san, 
-            arrayKey+"."+index+(isPureArray?"":this.key) 
+            this._san,
+            arrayKey+"."+index+(isPureArray?"":this.key)
             ,undefined
          )
         }
 
-      }else{
+      } else {
         // remove invalid date from _san
-        if(objectGetMethod(this._san,this.key)) objectSetMethod(this._san,this.key,undefined)
+        if (objectGetMethod(this._san,this.key)) objectSetMethod(this._san,this.key,undefined)
         var alias = this._alias[this.key];
         this.errorFields.push(this.key)
       }
 
-      if(alias){
+      if (alias) {
         msg = alias+": "+ msg.replace(/\S+\:\s/,"")
       }
 
       this._errs.push(msg)
-      // this.next = false;
+      // this.next = false
     }
     // prevent accidently change original value;
-    get currentVal(){
-      
-      if(this.inArrayMode){
+    get currentVal() {
+
+      if (this.inArrayMode) {
         var array = objectGetMethod(this.target, this.inArray.arrayKey);
         // nested first:  a.b.c[array]
-        // if(this.inArray.arrayKey.indexOf(".")> -1){  
-        // if(this.key.indexOf(".")> -1){ // [{a:{b:v}}]
-        
+        // if (this.inArray.arrayKey.indexOf(".")> -1) {
+        // if (this.key.indexOf(".")> -1) { // [{a:{b:v}}]
+
         //only in arrayMode
         var item = array[this.inArray.index];
-        var insideArray = objectGetMethod(item,this.key);
-        return (item && insideArray)? insideArray : item;
+        var insideArray = objectGetMethod(item, this.key);
+        return (item && (insideArray !== undefined))? insideArray : item;
       }
       // normal mode or nested mode
       return objectGetMethod(this.target, this.key)// get nested object value
@@ -111,34 +111,34 @@
      * @param  {[type]} name [description]
      * @return {[type]}      [description]
      */
-    alias(name){
-      if(!this.key) {
-        this.next = false; 
-        return this;
+    alias(name) {
+      if (!this.key) {
+        this.next = false
+        return this
       }
-      if(this.inArrayMode){
+      if (this.inArrayMode) {
         let {index,arrayKey} = this.inArray;
         this._alias[ arrayKey+"."+index+"."+this.key ] = name;
-      }else{
-        this._alias[ this.key ] = name; 
+      } else {
+        this._alias[ this.key ] = name;
       }
-      
-      return this;
+
+      return this
     }
     // ----------------- start a validation chain with this method -----
-    check(key){
-      this.key = key;
-      this.next = true;
-      this.opt = false;
+    check(key) {
+      this.key = key
+      this.next = true
+      this.opt = false
       let val = this.currentVal;
 
-      if(val !== undefined){
-        if(!this.inArrayMode){
+      if (val !== undefined) {
+        if (!this.inArrayMode) {
           // save it to _san
-          objectSetMethod(this._san,key, val)
-        } 
-      }else{
-        this.opt = true;
+          objectSetMethod(this._san, key, val)
+        }
+      } else {
+        this.opt = true
       }
 
       return this
@@ -147,35 +147,35 @@
      * check each item inside an array, set check in array mode;
      * @param  {function} checker callback function
      * @param  {[string]} tip     [description]
-     * @return {[object]}         
+     * @return {[object]}
      */
-    array(checker ,tip){
-      if(!this.next) return this;
+    array(checker, tip) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
-      if(!Array.isArray(val)){
-        this.addError(tip || `${this.key}: 需要为一个数组`)  
-      }else if(typeof checker === "function"){
-        this.inArrayMode = true;
-        this.inArray.arrayKey = this.key;
+      if (!Array.isArray(val)) {
+        this.addError(tip || `${this.key}: 需要为一个数组`)
+      } else  if (typeof checker === "function") {
+        this.inArrayMode = true
+        this.inArray.arrayKey = this.key
         // copy the array to _san
         objectSetMethod(this._san, this.key, val)
 
-        var self = this;
-        val.forEach(function(item,index){
+        var self = this
+        val.forEach(function(item, index) {
           self.inArray.index = index;
-          checker(self,index)
+          checker(self, index)
         });
 
-        this.inArrayMode = false;
+        this.inArrayMode = false
       }
 
-      return this;
+      return this
     }
 
-    defaultValueOrError(defaultValue,error) {
-      if(defaultValue !== undefined) {
+    defaultValueOrError(defaultValue, error) {
+      if (defaultValue !== undefined) {
         this.setSanitizedVal(defaultValue)
       } else {
         this.addError(error)
@@ -183,80 +183,80 @@
     }
 
     // ----------------- must in the beginning of the chain --------
-    required(tip,defaultValue){
+    required(tip, defaultValue) {
       // skip require if only take what is provided for sanitize;
-      if(this.takeWhatWeHave){
-        this.opt = true;
-        return this;
+      if (this.takeWhatWeHave) {
+        this.opt = true
+        return this
       }
-      if(!this.next) return this;
-      this.opt = false;
-      if(this.currentVal === undefined ||this.currentVal === ''){
+      if (!this.next) return this
+      this.opt = false
+      if (this.currentVal === undefined ||this.currentVal === '') {
         this.defaultValueOrError(defaultValue, tip || `${this.key}: 为必填字段`)
-        if(defaultValue === undefined) {
-          this.next = false;
+        if (defaultValue === undefined) {
+          this.next = false
         }
       }
 
-      return this;
+      return this
     }
-    optional(){
-      if(!this.next) return this;
-      this.opt = true;
-      return this;
+    optional() {
+      if (!this.next) return this
+      this.opt = true
+      return this
     }
     // ----------------- property validate methods ------------------
-    between(min,max,tip,defaultValue){
-      if(!this.next) return this;
+    between(min,max,tip,defaultValue) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
-      
-      let type = typeof val;
-      if((type === "string"||Array.isArray(val)) && (val.length > max || val.length< min) ){
-        this.defaultValueOrError(defaultValue, tip || `${this.key}: 长度应该在${min}-${max}个字符之间`);
-      }else if(type === "number" && (val > max || val< min)){
-         this.defaultValueOrError(defaultValue, tip || `${this.key}: 大小应该在${min}-${max}之间`)
-      }
-      return this;
-    }
-    max(num,tip, defaultValue){
-      if(!this.next) return this;
-      let val = this.currentVal;
-      if(this.opt && !val) return this;
-      let type = typeof val;
-      if((type === "string"||Array.isArray(val)) && val.length > num){
-        this.defaultValueOrError(defaultValue, tip || `${this.key}: 最多${num}个字符`); 
-      }else if(type === "number" && val > num){
-        this.defaultValueOrError(defaultValue, tip || `${this.key}: 最大值为${num}`)
-      }
-      return this;
-    }
-    min(num,tip, defaultValue){
-      if(!this.next) return this;
-      let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
       let type = typeof val;
-      if((type === "string"||Array.isArray(val)) && val.length < num){
+      if ((type === "string"||Array.isArray(val)) && (val.length > max || val.length< min) ) {
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: 长度应该在${min}-${max}个字符之间`);
+      } else  if (type === "number" && (val > max || val< min)) {
+         this.defaultValueOrError(defaultValue, tip || `${this.key}: 大小应该在${min}-${max}之间`)
+      }
+      return this
+    }
+    max(num,tip, defaultValue) {
+      if (!this.next) return this
+      let val = this.currentVal;
+      if (this.opt && !val) return this
+      let type = typeof val;
+      if ((type === "string"||Array.isArray(val)) && val.length > num) {
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: 最多${num}个字符`);
+      } else  if (type === "number" && val > num) {
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: 最大值为${num}`)
+      }
+      return this
+    }
+    min(num,tip, defaultValue) {
+      if (!this.next) return this
+      let val = this.currentVal;
+      if (this.opt && !val) return this
+
+      let type = typeof val;
+      if ((type === "string"||Array.isArray(val)) && val.length < num) {
         this.defaultValueOrError(defaultValue, tip || `${this.key}: 最少${num}个字符`)
-      }else if(type === "number" && val < num){
+      } else  if (type === "number" && val < num) {
         this.defaultValueOrError(defaultValue, tip || `${this.key}: 最小值为${num}`)
       }
 
-      return this;
+      return this
     }
-    regx(pattern, tip,modifiers,defaultValue){
-      if(!this.next) return this;
+    regx(pattern, tip,modifiers,defaultValue) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
       if (Object.prototype.toString.call(pattern) !== '[object RegExp]') {
           pattern = new RegExp(pattern, modifiers);
       }
-      if(!pattern.test(val)){
-        this.defaultValueOrError(defaultValue, tip || `${this.key}: 不合格${pattern.toString()}的格式`)  
+      if (!pattern.test(val)) {
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: 不合格${pattern.toString()}的格式`)
       }
 
-      return this;
+      return this
     }
     /**
      * pass in custom function for vlidation logic;
@@ -264,143 +264,143 @@
      * @param  {[string]} tip     [description]
      * @return {[object]}         [description]
      */
-    $apply(checker,tip,defaultValue){
-      if(!this.next) return this;
+    $apply(checker,tip,defaultValue) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
-      if(typeof checker !== "function") throw new Error("$apply第一个参数必须为function")
-      if(!checker(val)){
+      if (typeof checker !== "function") throw new Error("$apply第一个参数必须为function")
+      if (!checker(val)) {
         this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不是正确的格式`);
       }
 
-      return this;
+      return this
     }
-    
-    date(tip,defaultValue){
-      if(!this.next) return this;
+
+    date(tip,defaultValue) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
-      if(!vv.isDate(val)){
-        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不符合日期格式`)  
+      if (this.opt && !val) return this
+      if (!vv.isDate(val)) {
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不符合日期格式`)
       }
 
-      return this;
+      return this
     }
-    before(time, tip, defaultValue){
-      if(!this.next) return this;
+    before(time, tip, defaultValue) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
-      if(!vv.isBefore(val, time)){
-        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}需要在${time}之前`) 
+      if (this.opt && !val) return this
+      if (!vv.isBefore(val, time)) {
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}需要在${time}之前`)
       }
 
-      return this;
+      return this
     }
-    after(time, tip, defaultValue){
-      if(!this.next) return this;
+    after(time, tip, defaultValue) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
-      if(!vv.isAfter(val ,time )){
-        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}需要在${time}之后`) 
+      if (!vv.isAfter(val ,time )) {
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}需要在${time}之后`)
       }
-      return this;
+      return this
     }
-    in(values,tip,defaultValue){
-      if(!this.next) return this;
+    in(values,tip,defaultValue) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
-      if(!vv.isIn(val, values)){
-        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}需要在[${values.toString()}]之中`)  
+      if (!vv.isIn(val, values)) {
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}需要在[${values.toString()}]之中`)
       }
-      return this;
+      return this
     }
-    email(tip, options,defaultValue){
-      if(!this.next) return this;
+    email(tip, options,defaultValue) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
-      if(!vv.isEmail(val, options)){
-        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不是常规的email`) 
+      if (!vv.isEmail(val, options)) {
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不是常规的email`)
       }
 
-      return this;
+      return this
     }
-    JSON(tip, defaultValue){
-      if(!this.next) return this;
+    JSON(tip, defaultValue) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
-      if(!vv.isJSON(val)){
-        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不是JSON格式字符串`)  
+      if (!vv.isJSON(val)) {
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不是JSON格式字符串`)
       }
-      return this;
+      return this
     }
-    URL(tip,options, defaultValue){
-      if(!this.next) return this;
+    URL(tip,options, defaultValue) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
-      if(!vv.isURL(val,options)){
-        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不符合URL的格式`)  
+      if (!vv.isURL(val,options)) {
+        this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不符合URL的格式`)
       }
-      return this;
+      return this
     }
-    phone(tip, defaultValue){
+    phone(tip, defaultValue) {
       return this.regx(vv.regx.phone , tip || `${this.key}: ${this.currentVal}不是常规的手机号码`, null, defaultValue);
     }
-    numeric(tip,defaultValue){
+    numeric(tip,defaultValue) {
       return this.regx(vv.regx.numeric, tip || `${this.key}: ${this.currentVal}必须为纯数字`, null, defaultValue);
     }
-    decimal(tip,defaultValue){
-      return this.regx(vv.regx.decimal, tip || `${this.key}: ${this.currentVal}必须为小数格式数字`, null, defaultValue); 
+    decimal(tip,defaultValue) {
+      return this.regx(vv.regx.decimal, tip || `${this.key}: ${this.currentVal}必须为小数格式数字`, null, defaultValue);
     }
-    float(tip,defaultValue){
-      return this.regx(vv.regx.float, tip || `${this.key}: ${this.currentVal}必须为float格式数字`, null, defaultValue);  
+    float(tip,defaultValue) {
+      return this.regx(vv.regx.float, tip || `${this.key}: ${this.currentVal}必须为float格式数字`, null, defaultValue);
     }
-    hex(tip,defaultValue){
+    hex(tip,defaultValue) {
       return this.regx(vv.regx.hexadecimal, tip || `${this.key}: ${this.currentVal}必须为16进制数字`, null, defaultValue);
     }
-    alpha(tip,defaultValue){
+    alpha(tip,defaultValue) {
       return this.regx(vv.regx.alpha, tip || `${this.key}: ${this.currentVal}必须为纯字母`, null, defaultValue);
     }
-    alphanumeric(tip,defaultValue){
+    alphanumeric(tip,defaultValue) {
       return this.regx(vv.regx.alphanumeric, tip || `${this.key}: ${this.currentVal}必须为纯字母和数字的组合`, null, defaultValue);
     }
-    ascii(tip,defaultValue){
+    ascii(tip,defaultValue) {
       return this.regx(vv.regx.ascii, tip || `${this.key}: ${this.currentVal}必须为符合规范的ASCII码`, null, defaultValue);
     }
-    objectId(tip,defaultValue){
+    objectId(tip,defaultValue) {
       return this.regx(vv.regx.objectId , tip || `${this.currentVal}不是常规的ObjectId`, null, defaultValue);
     }
-    base64(tip,defaultValue){
+    base64(tip,defaultValue) {
       return this.regx(vv.regx.base64, tip || `${this.key}: ${this.currentVal}必须为符合规范的Base64编码`, null, defaultValue);
     }
-    creditCard(tip,defaultValue){
-      if(!this.next) return this;
+    creditCard(tip,defaultValue) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
-      if(!vv.isCreditCard(val)){
-        this.defaultValueOrError(defaultValue,tip || `${this.key}: ${val}不符合信用卡的格式`)  
+      if (!vv.isCreditCard(val)) {
+        this.defaultValueOrError(defaultValue,tip || `${this.key}: ${val}不符合信用卡的格式`)
       }
-      return this;
+      return this
     }
-    
+
 
     // ----------------- sanitizers ---------------
-    setSanitizedVal(value){
-      if(this.inArrayMode){
+    setSanitizedVal(value) {
+      if (this.inArrayMode) {
         let {index,arrayKey} = this.inArray;
         var item = objectGetMethod(this.target,arrayKey)[index]
         // pureArray: [1,2,"ss"]
         var isPureArray = item && !objectGetMethod(item,this.key);
-        if(isPureArray){
+        if (isPureArray) {
           // this._san[arrayKey][index] = value;
           objectSetMethod(this._san, arrayKey+"."+index, value)
-        }else{
+        } else {
           // this._san[arrayKey][index][this.key] = value;
           objectSetMethod(this._san, arrayKey+"."+index+"."+this.key , value)
         }
@@ -410,50 +410,50 @@
       }
     }
 
-    sanitize(func){
-      if(!this.next) return this;
+    sanitize(func) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
-      if(typeof func !== "function") throw new Error("sanitize第一个参数必须为function")
+      if (typeof func !== "function") throw new Error("sanitize第一个参数必须为function")
       this.setSanitizedVal(func(val))
-      
-      return this;
+
+      return this
     }
 
-    trim(){
-      if(!this.next) return this;
+    trim() {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
       this.setSanitizedVal(val.trim? val.trim() : val);
-      
-      return this;
+
+      return this
     }
 
-    whitelist(chars){
-      if(!this.next) return this;
+    whitelist(chars) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
       this.setSanitizedVal(val.replace(new RegExp('[^' + chars + ']+', 'g'), ''));
-      
-      return this;
+
+      return this
     }
-    blacklist(chars){
-      if(!this.next) return this;
+    blacklist(chars) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
       this.setSanitizedVal(val.replace(new RegExp('[' + chars + ']+', 'g'), ''))
-      
-      return this;
+
+      return this
     }
 
-    escape(){
-      if(!this.next) return this;
+    escape() {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
       this.setSanitizedVal(val.replace(/&/g, '&amp;')
             .replace(/"/g, '&quot;')
@@ -462,56 +462,56 @@
             .replace(/>/g, '&gt;')
             .replace(/\//g, '&#x2F;')
             .replace(/\`/g, '&#96;'));
-      
-      return this;
+
+      return this
     }
-    toBoolean(strict){
-      if(!this.next) return this;
+    toBoolean(strict) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
       if (strict) {
           this.setSanitizedVal(val === '1' || val === 'true');
       }
       this.setSanitizedVal(val !== '0' && val !== 'false' && val !== '')
-      
-      return this;
+
+      return this
     }
-    toDate(){
-      if(!this.next) return this;
+    toDate() {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
       if (Object.prototype.toString.call(val) === '[object Date]') {
           this.setSanitizedVal(val);
-      }else{
+      } else {
         let tt = Date.parse(val);
         this.setSanitizedVal(!isNaN(tt) ? new Date(tt) : null);
       }
-      
-      return this;
+
+      return this
     }
-    toFloat(){
-      if(!this.next) return this;
+    toFloat() {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
       this.setSanitizedVal(parseFloat(val));
-      
-      return this;
+
+      return this
     }
-    toInt(radix){
-      if(!this.next) return this;
+    toInt(radix) {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
 
       this.setSanitizedVal(parseInt(val, radix || 10));
-      
-      return this;
+
+      return this
     }
-    toString(){
-      if(!this.next) return this;
+    toString() {
+      if (!this.next) return this
       let val = this.currentVal;
-      if(this.opt && !val) return this;
+      if (this.opt && !val) return this
       if (typeof val === 'object' && val !== null && val.toString) {
           this.setSanitizedVal(val.toString());
       } else if (val === null || typeof val === 'undefined' || (isNaN(val) && !val.length)) {
@@ -519,8 +519,8 @@
       } else if (typeof val !== 'string') {
           this.setSanitizedVal(val + '');
       }
-      
-      return this;
+
+      return this
     }
 
     // -------------------------------- more features -----------------
@@ -531,7 +531,7 @@
       var parsed = fn(childVC)
       var {sanitized,errors} = parsed || childVC
       this.setSanitizedVal(sanitized)
-      if(errors && errors.length>0) {
+      if (errors && errors.length>0) {
         var alias = this._alias[field] || field
         this.addError(errors.map(e => alias+'.'+e))
       }
@@ -540,8 +540,8 @@
     }
 
     flatedArray(arg1,fn) {
-      // flatedArray('fields',function(){})
-      if(typeof arg1 === 'string') {
+      // flatedArray('fields',function() {})
+      if (typeof arg1 === 'string') {
         this.key = arg1
         var targetObj = this.currentVal
 
@@ -551,14 +551,14 @@
           var parsed = fn(childVC, targetObj[key])
           var {sanitized,errors} = parsed || childVC
           objectSetMethod(this._san, arg1 + '.'+key, sanitized)
-          
-          if(errors && errors.length>0) {
+
+          if (errors && errors.length>0) {
             var alias = (this._alias[arg1] || arg1) + '.'+key
             this.addError(errors.map(e => alias+'.'+e))
           }
         })
 
-      } else { // flatedArray(function(){})
+      } else { // flatedArray(function() {})
         Object.keys(this.target).forEach((key,index) => {
           this.key = key
           var childVC = new Validator(this.currentVal, this.takeWhatWeHave)
@@ -566,8 +566,8 @@
           var parsed = arg1(childVC, this.currentVal)
           var {sanitized,errors} = parsed || childVC
           this.setSanitizedVal(sanitized)
-          
-          if(errors && errors.length>0) {
+
+          if (errors && errors.length>0) {
             this.addError(errors.map(e => key+'.'+e))
           }
         })
@@ -578,7 +578,7 @@
 
 
   }// end of class
-  
+
 
   /**
    * get nested property for an object or array
@@ -588,16 +588,16 @@
    * @param  {[type]} index [description]
    * @return {[type]}       [description]
    */
-  function objectGetMethod(obj,key ,keys,index){
-    if(!obj || !key) return undefined;
-    if(!keys && key.indexOf(".")> -1){
-      keys = key.split(".");  
+  function objectGetMethod(obj,key ,keys,index) {
+    if (!obj || !key) return undefined;
+    if (!keys && key.indexOf(".")> -1) {
+      keys = key.split(".");
       return objectGetMethod(obj[ keys[0] ], keys[0], keys, 1);
     }
     // recursive
-    if(keys &&  keys[index+1]){
+    if (keys &&  keys[index+1]) {
       return objectGetMethod(obj[ keys[index] ], keys[index], keys, index+1);
-    }else if(keys &&  keys[index ]){
+    } else  if (keys &&  keys[index ]) {
       return obj [keys[index] ]
     }
 
@@ -610,32 +610,32 @@
    * @param  {[type]} value [description]
    * @return {[type]}       [description]
    */
-  function objectSetMethod(obj,key,value){
-    if(!obj || !key) throw new Error("objectSetMethod 需要object和key参数");
+  function objectSetMethod(obj,key,value) {
+    if (!obj || !key) throw new Error("objectSetMethod 需要object和key参数");
     var keys = key.split(".");
     try{
       keys.reduce((object,field,index)=> {
-        if(keys[index+1]!==undefined){ // not last key
-          if(!object[field]) 
+        if (keys[index+1]!==undefined) { // not last key
+          if (!object[field])
             object[field] = vv.regx.numeric.test(keys[index+1])? [] : {};
           return object[field]
-        } 
-        // this is the last key;
+        }
+        // this is the last key
         object[field]=value
         return object
       }, obj)
-      return true;
-    }catch(e){
-      return false;
+      return true
+    }catch(e) {
+      return false
     }
   }
 
-  if(process.browser){
+  if (process.browser) {
     window.VC = Validator;
     window.Validator = vv;
   }
 
   return Validator;
-  
+
 });
-  
+

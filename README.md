@@ -2,20 +2,50 @@ Validate-Chain
 ==============
 表单验证链，以及中文验证错误反馈信息
 
-###Motivation 为啥要写这个工具？
+### 安装
+```javascript
+npm install --save validate-chain
+
+// es5
+var VC = require("validate-chain")
+
+// es6
+import VC form "validate-chain"
+
+```
+
+### 浏览器中使用
+```
+bower install --save validate-chain
+```
+```html
+<script src="路径/validate-chain-browser.js"></script>
+```
+```javascript
+// VC 为全局变量
+var vc = new VC( objectData )
+vc.check("name").required("名字为必填项");
+//console.log( vc.errors )
+
+```
+
+### Motivation 为啥要写这个工具？
+
 以NODE作为后端开发单页应用时，前后端对表单的验证和消毒的逻辑以及返回的提示信息其实是一样的，应该做到前后端共用验证逻辑。目前后端可以使用的koa-validate,express-validate等验证中间件不能在前端使用。验证器应该去检查多个字段并在最后返回一个提示信息的数组，和已经消毒后的数据；
 
 ### TODO
+
  - migrate 'a.b' style to compose style
  - localization
  - error message template
 
-###使用 Validate-Chain
+### 使用 Validate-Chain
+
 ```javascript
 import VC from "validate-chain";
 
 var objectData = {age:22,name:"eisneim",gender:"guy",email:"ss.kjk",nested:{a:{b:{v:33}}}}
-validator.loginForm() => {	
+validator.loginForm() => {
 	var vc = new VC( objectData )
 	vc.check("email").email()
 		.check("desc").alias("描述").required()
@@ -38,6 +68,7 @@ validator.loginForm() => {
 }
 ```
 ### 复合Compose，用于处理子对象，合并child checker function
+
 ```javascript
 const mock = {
 	sub: {
@@ -80,7 +111,7 @@ describe('vc.flatedArray', function() {
 	var data = {
 		flated: flated,
 	}
-	
+
 	it('check flatedArray for each child', function() {
 		var vc = new VC(flated)
 		vc.flatedArray(function(each) {
@@ -116,7 +147,7 @@ describe('vc.flatedArray', function() {
 })
 ```
 
-###检查数组字段
+### 检查数组字段
 如果一个字段的值为数组，可以使用array(callback)来进行检查
 ```javascript
 var data = {
@@ -148,34 +179,8 @@ expect(vc.errors).to.have.length(5); // -> pass
 ] **/
 ```
 
-###安装
-```javascript
-npm install --save validate-chain
 
-// es5
-var VC = require("validate-chain")
-
-// es6
-import VC form "validate-chain"
-
-```
-
-###浏览器中使用
-```
-bower install --save validate-chain
-```
-```html
-<script src="路径/validate-chain-browser.js"></script>
-```
-```javascript
-// VC 为全局变量
-var vc = new VC( objectData )
-vc.check("name").required("名字为必填项");
-//console.log( vc.errors )
-
-```
-
-###API
+### API
  - **check(key)** 以它作为开始，如果对象数据有多层，可使用"a.b.c"来检查内部元素
  - **errors** 检查完后，读取这个属性即可获取所有的错误提示
  - **errorFields** 包含所有出错的字段的一个数组：["age","user.username","array.0.name"]
@@ -193,7 +198,7 @@ vc.check("name").required("名字为必填项");
  - **before(dateString,[tip],[devaultValue])** 时间在dateString之前
  - **after(dateString,[tip],[devaultValue])** 时间在dateString之后
  - **in(Array,[tip],[devaultValue])** 在一个数组值之一
- - **email([tip],[options],[devaultValue])** options: allow_display_name:false 是否匹配 “姓名 <email-地址>”; allow_utf8_local_part:true 是否限定只能使用英文字母和数字； 
+ - **email([tip],[options],[devaultValue])** options: allow_display_name:false 是否匹配 “姓名 <email-地址>”; allow_utf8_local_part:true 是否限定只能使用英文字母和数字；
  - **JSON([tip],[devaultValue])** 是否是格式没有错误的JSON
  - **URL([tip],[options],[devaultValue])** 检查是否是正常的URL，options:  protocols: ['http','https','ftp']指定可以用的协议， require_protocol:false 是否可以不用指定协议
  - **phone([tip],[devaultValue])** 检查手机号
@@ -212,7 +217,7 @@ vc.check("name").required("名字为必填项");
 ### sanitizers 消毒器
 想要被保存到vc.sanitized对象中的字段，必须使用vc.check("name"),如果该字段为可选的，则应该使用vc.check("name").optional(); 目前版本只支持第一层数组的元素的消毒
 ```javascript
-var data = { 
+var data = {
 	name:"  小明 ",
 	nested:{
 		name:" 小明 "
@@ -233,19 +238,19 @@ vc.check("objOfArray").required().array(function(item,index){
 
 console.log( vc.sanitized ) // {name:"小明",....}
 ```
-	
+
  - **trim()** 去掉首尾空格
- - **sanitize(function)** 自定义消毒类型 function(value){ return value+1 } 
+ - **sanitize(function)** 自定义消毒类型 function(value){ return value+1 }
  - **escape()** 将<, >, &, ', " /替换为HTML编码
  - **whitelist(chars)** 白名单 eg. whitelist("a-zA-Z") 将会变成：replace(/[^a-zA-Z]/g,"")
  - **blacklist(chars)** 黑名单 eg. whitelist("被和谐|不和谐|查水表") 将会变成：replace(/[被和谐|不和谐|查水表]/g,"")
- - **toBoolean([strict])** 
+ - **toBoolean([strict])**
  - **toDate()** 转换为日期对象
  - **toFloat()** 浮点数
  - **toInt([radix])** 整数，radix为进制
  - **toString()** 转换为字符串
 
-###开发
+### 开发
 ```
 // 测试
 gulp test

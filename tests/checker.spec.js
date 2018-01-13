@@ -15,18 +15,18 @@ var mock = {
 	base64: tmp.toString("base64"),
 	ascii: tmp.toString("ascii"),
 	hex: tmp.toString("hex"),
-	alpha:"soemstringABC",
-	alphanumeric:"asd23234",
+	alpha: "soemstringABC",
+	alphanumeric: "asd23234",
 	float:3.141568,
 	decimal: 0.25,
 
-	future:"2048-10-2 12:22",
+	future: "2048-10-2 12:22",
 	now: new Date(),
-	dateInvalid:"2015-20-3 12:22",
+	dateInvalid: "2015-20-3 12:22",
 
 	nested:{
-		array:[11,22],
-		arrayObj:[{user:{ age:16 }} ],
+		array: [11,22],
+		arrayObj: [ {user:{ age:16 }} ],
 		level1:{
 			level2:{
 				value:12
@@ -41,10 +41,10 @@ var mock = {
 	}
 }
 
-describe('Validator-Chain checkers',function(){
+describe('Validator-Chain checkers', function(){
 // before(), after(), beforeEach()
 
-	it("should check require() and optional()",function(){
+	it("should check require() and optional()", function(){
 		var vc = new VC( mock );
 		vc.check("name").required()
 			.check("null").optional().max(18)
@@ -60,7 +60,7 @@ describe('Validator-Chain checkers',function(){
 		expect( vc.errors ).to.have.length(2);
 	});
 
-	it("should change Error message if .aliase() presents",function(){
+	it("should change Error message if .aliase() presents", function(){
 		var vc = new VC( mock );
 		vc.check("name").alias("姓名").in(["terry","mike"])
 		vc.check("age").alias("年龄").between(10,18,"应该在十到十八之间")
@@ -69,49 +69,54 @@ describe('Validator-Chain checkers',function(){
 		expect( vc.errors[1] ).to.match(/年龄.+之间/)
 	})
 
-	it("should be chainable,key with optional() should be skiped",function(){
+	it("should be chainable,key with optional() should be skiped", function(){
 		var vc = new VC( mock );
 		vc.check("age").between(10,18).max(18).in([21,22,23]);
 		vc.check("null").optional().between(10,18).max(18).in([21,22,23]);
 		expect( vc.errors).to.have.length(3);
 	})
 
-	it("can use regx",function(){
+	it("can use regx", function(){
 		var vc = new VC( mock );
 		vc.check("name").regx(/^eis./i).regx("eim$",null,"i")
 
 		expect(vc.errors).to.be.empty;
 	})
 
-	it("can check array",function(){
+	it("can check array", function(){
 		var vc = new VC( {
-			levels:[ 1,3,4,5],
-			posts:[
-				{title:"some title ",date:"2014-20-3 12:22" },
-				{title:"不和谐的标题",date:"2014-12-3 12:22" },
+			levels: [ 1,3,4,5],
+			posts: [
+				{title: "", date: "2014-20-3 12:22" },
+				{title: "不和谐的标题", date: "2014-12-3 12:22" },
+				{title: "asds", date: "2014-1-3 12:22" },
 			],
-			email:"badeEmail.com"
-		} );
-		vc.check("levels").alias("等级").array(function(item,index){
-			item.required().max(3)
-		})
+			email: "badeEmail.com", name: "ttt",
+		} )
 
-		expect(vc.errors).to.have.length(2);
+		vc.check("name").required().min(2)
 
-		vc.check("posts").array( function( item,index ){
+		vc.check("posts").alias("文章").array((item, index) => {
 			item.check("date").required().date();
-			item.check("name").required();
+			item.check("title").min(3, "标题最少3个字符");
+			console.log("currentval:",item.currentVal)
 			// item.check("title").regx(/title/)
 		})
-		expect(vc.errors).to.have.length(3);
+		console.log(vc.errors)
+		expect(vc.errors).to.have.length(2);
+
+		vc.check("levels").alias("等级").array((item, index) => {
+			item.required().max(3)
+		})
+		expect(vc.errors).to.have.length(4);
 
 		vc.check("email").email();
-		expect(vc.errors).to.have.length(4);
-		expect(vc.errorFields).to.have.length(4);
+		expect(vc.errors).to.have.length(5);
+		expect(vc.errorFields).to.have.length(5);
 	})
 
 
-	it("should be able to use $apply to use custom logic",function(){
+	it("should be able to use $apply to use custom logic", function(){
 		var vc = new VC( mock );
 		vc
 		.check("age").alias("年龄").$apply(function( val ){
@@ -129,7 +134,7 @@ describe('Validator-Chain checkers',function(){
 		expect( vc.sanitized.age ).to.equal(14)
 	})
 
-	it("can deal with common string format",function(){
+	it("can deal with common string format", function(){
 		var vc = new VC( mock );
 		vc.check("phone").phone()
 		vc.check("phoneInvalid").phone()
@@ -152,7 +157,7 @@ describe('Validator-Chain checkers',function(){
 		expect( vc.errors ).to.have.length(3);
 	})
 
-	it("can deal with Date",function(){
+	it("can deal with Date", function(){
 		var vc = new VC( mock );
 		var now = new Date()
 		vc.check("future").date();
@@ -165,7 +170,7 @@ describe('Validator-Chain checkers',function(){
 
 	})
 
-	it("can deal with numbers and Alphabetic",function(){
+	it("can deal with numbers and Alphabetic", function(){
 		var vc = new VC( mock );
 		vc.check("hex").hex()
 		vc.check("age").between(18,30).max(26).min(21)
@@ -178,7 +183,7 @@ describe('Validator-Chain checkers',function(){
 		expect( vc.errors ).to.have.length(1);
 	})
 
-	it("should check nested object property",function(){
+	it("should check nested object property", function(){
 		var vc = new VC( mock );
 		vc.check('nested')
 		vc.check("nested.array").required().array(function(item,index){

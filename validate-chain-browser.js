@@ -161,7 +161,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }
 
         this._errs.push(msg);
-        // this.next = false;
+        // this.next = false
       }
 
       // prevent accidently change original value;
@@ -217,7 +217,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
        * check each item inside an array, set check in array mode;
        * @param  {function} checker callback function
        * @param  {[string]} tip     [description]
-       * @return {[object]}         
+       * @return {[object]}
        */
     }, {
       key: 'array',
@@ -689,7 +689,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       value: function flatedArray(arg1, fn) {
         var _this = this;
 
-        // flatedArray('fields',function(){})
+        // flatedArray('fields',function() {})
         if (typeof arg1 === 'string') {
           this.key = arg1;
           var targetObj = this.currentVal;
@@ -714,7 +714,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
           });
         } else {
-          // flatedArray(function(){})
+          // flatedArray(function() {})
           Object.keys(this.target).forEach(function (key, index) {
             _this.key = key;
             var childVC = new Validator(_this.currentVal, _this.takeWhatWeHave);
@@ -754,13 +754,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         if (this.inArrayMode) {
           var array = objectGetMethod(this.target, this.inArray.arrayKey);
           // nested first:  a.b.c[array]
-          // if(this.inArray.arrayKey.indexOf(".")> -1){ 
-          // if(this.key.indexOf(".")> -1){ // [{a:{b:v}}]
+          // if (this.inArray.arrayKey.indexOf(".")> -1) {
+          // if (this.key.indexOf(".")> -1) { // [{a:{b:v}}]
 
           //only in arrayMode
           var item = array[this.inArray.index];
           var insideArray = objectGetMethod(item, this.key);
-          return item && insideArray ? insideArray : item;
+          return item && insideArray !== undefined ? insideArray : item;
         }
         // normal mode or nested mode
         return objectGetMethod(this.target, this.key);
@@ -822,7 +822,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
           if (!object[field]) object[field] = vv.regx.numeric.test(keys[index + 1]) ? [] : {};
           return object[field];
         }
-        // this is the last key;
+        // this is the last key
         object[field] = value;
         return object;
       }, obj);
@@ -866,7 +866,7 @@ var regx = {
   objectId: /^[0-9a-fA-F]{24}$/,
   alpha: /^[A-Z]+$/i,
   alphanumeric: /^[0-9A-Z]+$/i,
-  numeric: /^[-+]?[0-9]+$/,
+  numeric: /^[-+]?[0-9\.]+$/,
   int: /^(?:[-+]?(?:0|[1-9][0-9]*))$/,
   float: /^(?:[-+]?(?:[0-9]+))?(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/,
   hexadecimal: /^[0-9A-F]+$/i,
