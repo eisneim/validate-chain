@@ -62,28 +62,30 @@
           alias = (arrayAlias||arrayKey)+
           "."+index;
         } else {
+
           alias = (arrayAlias||arrayKey)+"."+index+"."+
           (alias||this.key)
         }
         this.errorFields.push(arrayKey+"."+index+(isPureArray? "":"."+this.key))
         // remove invalid data from _san
-        if (objectGetMethod(this._san,arrayKey)[index]) {
+        if (objectGetMethod(this._san, arrayKey)[index]) {
           objectSetMethod(
             this._san,
-            arrayKey+"."+index+(isPureArray?"":this.key)
-            ,undefined
+            arrayKey+"."+index+(isPureArray?"":this.key),
+            undefined
          )
         }
 
       } else {
         // remove invalid date from _san
-        if (objectGetMethod(this._san,this.key)) objectSetMethod(this._san,this.key,undefined)
+        if (objectGetMethod(this._san, this.key))
+          objectSetMethod(this._san, this.key, undefined)
         var alias = this._alias[this.key];
         this.errorFields.push(this.key)
       }
 
       if (alias) {
-        msg = alias+": "+ msg.replace(/\S+\:\s/,"")
+        msg = alias + ": "+ msg.replace(/\S+\:\s/, "")
       }
 
       this._errs.push(msg)
@@ -130,12 +132,12 @@
       this.key = key
       this.next = true
       this.opt = false
-      let val = this.currentVal;
+      let val = this.currentVal
 
       if (val !== undefined) {
         if (!this.inArrayMode) {
           // save it to _san
-          objectSetMethod(this._san, key, val)
+          objectSetMethod(this._san, key, safeSetObject(val))
         }
       } else {
         this.opt = true
@@ -151,7 +153,7 @@
      */
     array(checker, tip) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       if (!Array.isArray(val)) {
@@ -160,7 +162,7 @@
         this.inArrayMode = true
         this.inArray.arrayKey = this.key
         // copy the array to _san
-        objectSetMethod(this._san, this.key, val)
+        objectSetMethod(this._san, this.key, safeSetObject(val))
 
         var self = this
         val.forEach(function(item, index) {
@@ -208,10 +210,10 @@
     // ----------------- property validate methods ------------------
     between(min,max,tip,defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
-      let type = typeof val;
+      let type = typeof val
       if ((type === "string"||Array.isArray(val)) && (val.length > max || val.length< min) ) {
         this.defaultValueOrError(defaultValue, tip || `${this.key}: 长度应该在${min}-${max}个字符之间`);
       } else  if (type === "number" && (val > max || val< min)) {
@@ -221,9 +223,9 @@
     }
     max(num,tip, defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
-      let type = typeof val;
+      let type = typeof val
       if ((type === "string"||Array.isArray(val)) && val.length > num) {
         this.defaultValueOrError(defaultValue, tip || `${this.key}: 最多${num}个字符`);
       } else  if (type === "number" && val > num) {
@@ -233,10 +235,10 @@
     }
     min(num,tip, defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
-      let type = typeof val;
+      let type = typeof val
       if ((type === "string"||Array.isArray(val)) && val.length < num) {
         this.defaultValueOrError(defaultValue, tip || `${this.key}: 最少${num}个字符`)
       } else  if (type === "number" && val < num) {
@@ -247,7 +249,7 @@
     }
     regx(pattern, tip,modifiers,defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
       if (Object.prototype.toString.call(pattern) !== '[object RegExp]') {
           pattern = new RegExp(pattern, modifiers);
@@ -264,9 +266,9 @@
      * @param  {[string]} tip     [description]
      * @return {[object]}         [description]
      */
-    $apply(checker,tip,defaultValue) {
+    $apply(checker, tip, defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       if (typeof checker !== "function") throw new Error("$apply第一个参数必须为function")
@@ -277,9 +279,9 @@
       return this
     }
 
-    date(tip,defaultValue) {
+    date(tip, defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
       if (!vv.isDate(val)) {
         this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}不符合日期格式`)
@@ -289,7 +291,7 @@
     }
     before(time, tip, defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
       if (!vv.isBefore(val, time)) {
         this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}需要在${time}之前`)
@@ -299,17 +301,17 @@
     }
     after(time, tip, defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
-      if (!vv.isAfter(val ,time )) {
+      if (!vv.isAfter(val, time )) {
         this.defaultValueOrError(defaultValue, tip || `${this.key}: ${val}需要在${time}之后`)
       }
       return this
     }
-    in(values,tip,defaultValue) {
+    in(values, tip, defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       if (!vv.isIn(val, values)) {
@@ -319,7 +321,7 @@
     }
     email(tip, options,defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       if (!vv.isEmail(val, options)) {
@@ -330,7 +332,7 @@
     }
     JSON(tip, defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       if (!vv.isJSON(val)) {
@@ -340,7 +342,7 @@
     }
     URL(tip,options, defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       if (!vv.isURL(val,options)) {
@@ -380,7 +382,7 @@
     }
     creditCard(tip,defaultValue) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       if (!vv.isCreditCard(val)) {
@@ -412,7 +414,7 @@
 
     sanitize(func) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       if (typeof func !== "function") throw new Error("sanitize第一个参数必须为function")
@@ -423,7 +425,7 @@
 
     trim() {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       this.setSanitizedVal(val.trim? val.trim() : val);
@@ -433,7 +435,7 @@
 
     whitelist(chars) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       this.setSanitizedVal(val.replace(new RegExp('[^' + chars + ']+', 'g'), ''));
@@ -442,7 +444,7 @@
     }
     blacklist(chars) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       this.setSanitizedVal(val.replace(new RegExp('[' + chars + ']+', 'g'), ''))
@@ -452,7 +454,7 @@
 
     escape() {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       this.setSanitizedVal(val.replace(/&/g, '&amp;')
@@ -467,7 +469,7 @@
     }
     toBoolean(strict) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
       if (strict) {
           this.setSanitizedVal(val === '1' || val === 'true');
@@ -478,7 +480,7 @@
     }
     toDate() {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       if (Object.prototype.toString.call(val) === '[object Date]') {
@@ -492,7 +494,7 @@
     }
     toFloat() {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       this.setSanitizedVal(parseFloat(val));
@@ -501,7 +503,7 @@
     }
     toInt(radix) {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
 
       this.setSanitizedVal(parseInt(val, radix || 10));
@@ -510,7 +512,7 @@
     }
     toString() {
       if (!this.next) return this
-      let val = this.currentVal;
+      let val = this.currentVal
       if (this.opt && !val) return this
       if (typeof val === 'object' && val !== null && val.toString) {
           this.setSanitizedVal(val.toString());
@@ -579,6 +581,30 @@
 
   }// end of class
 
+  function isDict(v) {
+    return typeof v === 'object' && v !== null && !(v instanceof Array) && !(v instanceof Date)
+  }
+
+  function getChildObject(obj, key) {
+    let child = obj[key]
+    if (Array.isArray(child)) {
+      return child.slice()
+    } else if (isDict(child)) {
+      return Object.assign({}, child)
+    } else {
+      return child
+    }
+  }
+
+  function safeSetObject(value) {
+    if (Array.isArray(value)) {
+      return value.slice()
+    } else if (isDict(value)) {
+      return Object.assign({}, value)
+    } else {
+      return value
+    }
+  }
 
   /**
    * get nested property for an object or array
@@ -588,20 +614,21 @@
    * @param  {[type]} index [description]
    * @return {[type]}       [description]
    */
-  function objectGetMethod(obj,key ,keys,index) {
+  function objectGetMethod(obj, key, keys, index) {
     if (!obj || !key) return undefined;
     if (!keys && key.indexOf(".")> -1) {
       keys = key.split(".");
-      return objectGetMethod(obj[ keys[0] ], keys[0], keys, 1);
+      return objectGetMethod(obj[keys[0]], keys[0], keys, 1);
     }
     // recursive
-    if (keys &&  keys[index+1]) {
-      return objectGetMethod(obj[ keys[index] ], keys[index], keys, index+1);
-    } else  if (keys &&  keys[index ]) {
-      return obj [keys[index] ]
+    if (keys && keys[index+1]) {
+      return objectGetMethod(obj[keys[index]], keys[index], keys, index + 1);
+    } else  if (keys && keys[index]) {
+      // return obj[keys[index]]
+      return getChildObject(obj, keys[index])
     }
 
-    return obj[ key ];
+    return getChildObject(obj, key);
   }
   /**
    * set nested property for an object or array
@@ -610,22 +637,22 @@
    * @param  {[type]} value [description]
    * @return {[type]}       [description]
    */
-  function objectSetMethod(obj,key,value) {
+  function objectSetMethod(obj, key, value) {
     if (!obj || !key) throw new Error("objectSetMethod 需要object和key参数");
     var keys = key.split(".");
     try{
-      keys.reduce((object,field,index)=> {
-        if (keys[index+1]!==undefined) { // not last key
+      keys.reduce((object, field, index)=> {
+        if (keys[index+1] !== undefined) { // not last key
           if (!object[field])
             object[field] = vv.regx.numeric.test(keys[index+1])? [] : {};
           return object[field]
         }
         // this is the last key
-        object[field]=value
+        object[field] = value
         return object
       }, obj)
       return true
-    }catch(e) {
+    } catch (e) {
       return false
     }
   }

@@ -43,15 +43,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     // end of class
 
-    /**
-     * get nested property for an object or array
-     * @param  {[type]} obj   [description]
-     * @param  {[type]} key   [description]
-     * @param  {[type]} keys  [description]
-     * @param  {[type]} index [description]
-     * @return {[type]}       [description]
-     */
-
     _createClass(Validator, [{
       key: 'addError',
       value: function addError(msg) {
@@ -75,6 +66,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
           if (isPureArray) {
             alias = (arrayAlias || arrayKey) + "." + index;
           } else {
+
             alias = (arrayAlias || arrayKey) + "." + index + "." + (alias || this.key);
           }
           this.errorFields.push(arrayKey + "." + index + (isPureArray ? "" : "." + this.key));
@@ -137,7 +129,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         if (val !== undefined) {
           if (!this.inArrayMode) {
             // save it to _san
-            objectSetMethod(this._san, key, val);
+            objectSetMethod(this._san, key, safeSetObject(val));
           }
         } else {
           this.opt = true;
@@ -165,7 +157,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
           this.inArrayMode = true;
           this.inArray.arrayKey = this.key;
           // copy the array to _san
-          objectSetMethod(this._san, this.key, val);
+          objectSetMethod(this._san, this.key, safeSetObject(val));
 
           var self = this;
           val.forEach(function (item, index) {
@@ -703,6 +695,39 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     return Validator;
   })();
 
+  function isDict(v) {
+    return typeof v === 'object' && v !== null && !(v instanceof Array) && !(v instanceof Date);
+  }
+
+  function getChildObject(obj, key) {
+    var child = obj[key];
+    if (Array.isArray(child)) {
+      return child.slice();
+    } else if (isDict(child)) {
+      return Object.assign({}, child);
+    } else {
+      return child;
+    }
+  }
+
+  function safeSetObject(value) {
+    if (Array.isArray(value)) {
+      return value.slice();
+    } else if (isDict(value)) {
+      return Object.assign({}, value);
+    } else {
+      return value;
+    }
+  }
+
+  /**
+   * get nested property for an object or array
+   * @param  {[type]} obj   [description]
+   * @param  {[type]} key   [description]
+   * @param  {[type]} keys  [description]
+   * @param  {[type]} index [description]
+   * @return {[type]}       [description]
+   */
   function objectGetMethod(_x, _x2, _x3, _x4) {
     var _again = true;
 
@@ -732,10 +757,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         _again = true;
         continue _function;
       } else if (keys && keys[index]) {
-        return obj[keys[index]];
+        // return obj[keys[index]]
+        return getChildObject(obj, keys[index]);
       }
 
-      return obj[key];
+      return getChildObject(obj, key);
     }
   }
   /**

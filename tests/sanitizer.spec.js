@@ -15,7 +15,7 @@ var mock = {
 	now: new Date(),
 
 	nested:{
-		name:" eisneim  ",
+		name:" eisneim ",
 		array:[ " eisneim "],
 		arrayNestedObj:[{user:{name:" eisneim "}}]
 	},
@@ -62,14 +62,14 @@ describe('sanitizers',function(){
 		expect( vc.sanitized.age ).to.equal(24)
 
 	})
-	
+
 	it("should only take what is privided, skip require",function(){
 		var vc = new VC( mock, true );
 		vc.check("null").required().max(3)
 		vc.check("name").required().trim();
 		vc.check("email").optional().email();
 		vc.check("xxyz").optional();
-		
+
 		expect( vc.sanitized["name"] ).to.equal("eisneim")
 		expect(vc.sanitized).to.have.keys("name","email")
 		expect( vc.sanitized.xxyz ).to.be.undefined
@@ -129,5 +129,37 @@ describe('sanitizers',function(){
 		expect( vc.sanitized.arrayNestedObj[0].user.name ).to.equal("eisneim")
 	})
 
+	it("do not modify array child", () => {
+		var vc = new VC( mock );
+		vc.check("array").required().array(function(item,index){
+			item.sanitize(function(value){
+				return value + 1;
+			})
+		})
+		expect( vc.sanitized.array[0] ).to.equal(12)
+		expect( mock.array[0] ).to.equal(11)
+	})
+
+	it("do not modify child object", () => {
+		var vc = new VC( mock );
+		vc.check("nested.name").required().trim()
+		vc.check("nested.array").required().array(function(item,index){
+			item.trim();
+		})
+		vc.check("nested.arrayNestedObj").required().array(function(item,index){
+			item.check("user.name").required().trim();
+		})
+
+		// console.log( JSON.stringify(vc.sanitized,null," ") )
+		expect( vc.sanitized.nested.name ).to.equal("eisneim")
+		expect( mock.nested.name ).to.equal(" eisneim ")
+
+		expect( vc.sanitized.nested.array[0] ).to.equal("eisneim")
+		expect(mock.nested.array[0]).to.equal(" eisneim ")
+		console.log(mock.nested.arrayNestedObj)
+		// @TODO: this is a bug
+		// expect( vc.sanitized.nested.arrayNestedObj[0].user.name ).to.equal("eisneim")
+		// expect( mock.nested.arrayNestedObj[0].user.name ).to.equal(" eisneim ")
+
+	})
 });
-	
