@@ -61,6 +61,7 @@ validator.loginForm() => {
 	vc.check("nested.a.b.v").max(30)
 
 	console.log( vc.errors )
+  // 如果没有任何错误，vc.errors === null
 	//["描述: 为必填字段", "age: 最小值为23", "性别: 不合格/male|female/的格式", "ss.kjk不是常规的email"]
 	console.log( vc.sanitized )
 	// {name: "eisneim"}
@@ -243,7 +244,8 @@ console.log( vc.sanitized ) // {name:"小明",....}
  - **sanitize(function)** 自定义消毒类型 function(value){ return value+1 }
  - **escape()** 将<, >, &, ', " /替换为HTML编码
  - **whitelist(chars)** 白名单 eg. whitelist("a-zA-Z") 将会变成：replace(/[^a-zA-Z]/g,"")
- - **blacklist(chars)** 黑名单 eg. whitelist("被和谐|不和谐|查水表") 将会变成：replace(/[被和谐|不和谐|查水表]/g,"")
+ - **blacklist(chars, [replacement])** 黑名单 eg. whitelist("被和谐|不和谐|查水表") 将会变成：replace(/[被和谐|不和谐|查水表]/g,"")
+ - **noSpecialChar([replacement])** 替换特殊字符为下划线_ 正则为：/[#'$%^&*\/\\\|<>\[\]{}]/g
  - **toBoolean([strict])**
  - **toDate()** 转换为日期对象
  - **toFloat()** 浮点数

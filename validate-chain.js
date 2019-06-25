@@ -497,12 +497,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       }
     }, {
       key: 'blacklist',
-      value: function blacklist(chars) {
+      value: function blacklist(chars, replacement) {
         if (!this.next) return this;
         var val = this.currentVal;
         if (this.opt && !val) return this;
 
-        this.setSanitizedVal(val.replace(new RegExp('[' + chars + ']+', 'g'), ''));
+        this.setSanitizedVal(val.replace(new RegExp('[' + chars + ']+', 'g'), replacement || ""));
+
+        return this;
+      }
+    }, {
+      key: 'noSpecialChar',
+      value: function noSpecialChar(replacement) {
+        if (!this.next) return this;
+        var val = this.currentVal;
+        if (this.opt && !val) return this;
+
+        this.setSanitizedVal(val.replace(vv.regx.specialChars, replacement || "_"));
 
         return this;
       }

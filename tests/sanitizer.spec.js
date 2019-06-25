@@ -35,7 +35,7 @@ describe('sanitizers',function(){
 		vc.check("description").blacklist("不和谐");
 		vc.check("site").URL().whitelist("glexe1234567890");
 		vc.check("badInput").escape()
-		expect( vc.errors ).to.be.empty;
+		expect( vc.errors ).to.be.null;
 		expect( vc.sanitized["name"] ).to.equal("eisneim")
 		expect( vc.sanitized["description"] ).to.equal("_")
 		expect( vc.sanitized["site"]).to.equal("glexe")
@@ -161,5 +161,11 @@ describe('sanitizers',function(){
 		// expect( vc.sanitized.nested.arrayNestedObj[0].user.name ).to.equal("eisneim")
 		// expect( mock.nested.arrayNestedObj[0].user.name ).to.equal(" eisneim ")
 
+	})
+
+	it("replace special chars", () => {
+		var vc = new VC( { name: "terry*&" } );
+		vc.check("name").noSpecialChar()
+		expect(vc.sanitized["name"]).to.equal("terry__")
 	})
 });

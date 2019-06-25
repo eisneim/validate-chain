@@ -1,8 +1,11 @@
 export const regx = {
-  phone: /^(\+?0?86\-?)?1[345789]\d{9}$/,
+  phone: /^(\+?0?86\-?)?1[3456789]\d{9}$/,
+  // 手机号段正则表达式 (2019-01 最新) https://blog.csdn.net/u011415782/article/details/85601655
+  phoneStrict: /^[1](([3][0-9])|([4][5-9])|([5][0-3,5-9])|([6][5,6])|([7][0-8])|([8][0-9])|([9][1,8,9]))[0-9]{8}$/,
   email: /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i,
   creditCard: /^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$/,
   objectId: /^[0-9a-fA-F]{24}$/,
+  specialChars: /[#'$%^&*\/\\\|<>\[\]{}]/g,
   alpha: /^[A-Z]+$/i,
   alphanumeric: /^[0-9A-Z]+$/i,
   numeric: /^[-+]?[0-9\.]+$/,
@@ -10,7 +13,7 @@ export const regx = {
   float: /^(?:[-+]?(?:[0-9]+))?(?:\.[0-9]*)?(?:[eE][\+\-]?(?:[0-9]+))?$/,
   hexadecimal: /^[0-9A-F]+$/i,
   decimal:/^[-+]?([0-9]+|\.[0-9]+|[0-9]+\.[0-9]+)$/,
-  hexcolor: /^#?([0-9A-F]{3}|[0-9A-F]{6})$/i, 
+  hexcolor: /^#?([0-9A-F]{3}|[0-9A-F]{6})$/i,
   ascii: /^[\x00-\x7F]+$/,
   base64: /^(?:[A-Z0-9+\/]{4})*(?:[A-Z0-9+\/]{2}==|[A-Z0-9+\/]{3}=|[A-Z0-9+\/]{4})$/i,
   ipv4Maybe: /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/,
@@ -51,13 +54,13 @@ export function isDate(str) {
 }
 
 export function isBefore(str,date) {
-  var comparison = toDate(date || new Date()), 
+  var comparison = toDate(date || new Date()),
     original = toDate(str);
   return !!(original && comparison && original < comparison);
 }
 
 export function isAfter(str, date) {
-  var comparison = toDate(date || new Date()), 
+  var comparison = toDate(date || new Date()),
     original = toDate(str);
   return !!(original && comparison && original > comparison);
 }
@@ -230,4 +233,3 @@ export function isCreditCard(str) {
   }
   return !!((sum % 10) === 0 ? sanitized : false);
 }
-

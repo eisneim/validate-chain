@@ -78,9 +78,8 @@ describe('Validator-Chain checkers', function(){
 
 	it("can use regx", function(){
 		var vc = new VC( mock );
-		vc.check("name").regx(/^eis./i).regx("eim$",null,"i")
-
-		expect(vc.errors).to.be.empty;
+		vc.check("name").regx(/^eis./i).regx("eim$", null, "i")
+		expect(vc.errors).to.be.null;
 	})
 
 	it("can check array", function(){

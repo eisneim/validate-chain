@@ -247,12 +247,12 @@
 
       return this
     }
-    regx(pattern, tip,modifiers,defaultValue) {
+    regx(pattern, tip, modifiers, defaultValue) {
       if (!this.next) return this
       let val = this.currentVal
       if (this.opt && !val) return this
       if (Object.prototype.toString.call(pattern) !== '[object RegExp]') {
-          pattern = new RegExp(pattern, modifiers);
+        pattern = new RegExp(pattern, modifiers);
       }
       if (!pattern.test(val)) {
         this.defaultValueOrError(defaultValue, tip || `${this.key}: 不合格${pattern.toString()}的格式`)
@@ -442,12 +442,21 @@
 
       return this
     }
-    blacklist(chars) {
+    blacklist(chars, replacement) {
       if (!this.next) return this
       let val = this.currentVal
       if (this.opt && !val) return this
 
-      this.setSanitizedVal(val.replace(new RegExp('[' + chars + ']+', 'g'), ''))
+      this.setSanitizedVal(val.replace(new RegExp('[' + chars + ']+', 'g'), replacement || ""))
+
+      return this
+    }
+    noSpecialChar(replacement) {
+      if (!this.next) return this
+      let val = this.currentVal
+      if (this.opt && !val) return this
+
+      this.setSanitizedVal(val.replace(vv.regx.specialChars, replacement || "_"))
 
       return this
     }
@@ -665,4 +674,3 @@
   return Validator;
 
 });
-
